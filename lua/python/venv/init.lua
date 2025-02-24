@@ -76,7 +76,7 @@ local get_pixi_base_path = function()
   if not vim.fn.filereadable(pixi_root) then
     return nil
   else
-    return vim.fs.join(pixi_root, 'envs')
+    return vim.fs.joinpath(pixi_root, 'envs')
   end
 end
 
