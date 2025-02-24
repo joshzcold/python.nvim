@@ -55,19 +55,21 @@ local function pdm_sync(pdm_lock_path)
     { 'pdm', 'sync' },
     {
       cwd = dir_name,
-      on_exit = function(obj)
-        vim.schedule(function()
+    },
+    function(obj)
+      vim.schedule(
+        function()
           if obj.code ~= 0 then
             vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
-          else
-            local venv_path = dir_name .. '/' .. venv_dir
-            local venv_name = vim.fs.basename(dir_name)
-            python_set_venv(venv_path, venv_name)
-            vim.notify('python.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
+            return
           end
-        end)
-      end
-    }
+          local venv_path = dir_name .. '/' .. venv_dir
+          local venv_name = vim.fs.basename(dir_name)
+          python_set_venv(venv_path, venv_name)
+          vim.notify('python.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
+        end
+      )
+    end
   )
 end
 
@@ -87,39 +89,42 @@ local function pip_install_with_venv(requirements_path)
   vim.system(
     { python_app, '-m', 'venv', venv_path },
     {
-    cwd = dir_name,
-    on_exit = function(obj)
-      vim.schedule(function()
-        if obj.code ~= 0 then
-          vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
-        else
-          local pip_path = venv_path .. '/' .. 'bin/pip'
-          local install_args = { 'install', '-r', requirements_path }
-          if string.find(requirements_path, 'pyproject.toml$') then
-            install_args = { 'install', '.' }
-          end
+      cwd = dir_name,
+    },
+    function(obj)
+      vim.schedule(
+        function()
+          if obj.code ~= 0 then
+            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
+          else
+            local pip_path = venv_path .. '/' .. 'bin/pip'
+            local install_args = { 'install', '-r', requirements_path }
+            if string.find(requirements_path, 'pyproject.toml$') then
+              install_args = { 'install', '.' }
+            end
 
-          local pip_install_cmd = table.insert{install_args, 1, pip_path}
-          vim.system(
+            local pip_install_cmd = table.insert { install_args, 1, pip_path }
+            vim.system(
               pip_install_cmd,
-              {cwd = dir_name,
-                on_exit = function(obj2)
-                  vim.schedule(function()
-                    if obj2.code ~= 0 then
-                      vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
-                    else
-                      local venv_name = vim.fs.basename(dir_name)
-                      python_set_venv(venv_path, venv_name)
-                      vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
-                    end
-                  end)
-                end
-              }
+              {
+                cwd = dir_name,
+              },
+              function(obj2)
+                vim.schedule(function()
+                  if obj2.code ~= 0 then
+                    vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                  else
+                    local venv_name = vim.fs.basename(dir_name)
+                    python_set_venv(venv_path, venv_name)
+                    vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
+                  end
+                end)
+              end
             )
+          end
         end
-      end)
-    end,
-    }
+      )
+    end
   )
 end
 
