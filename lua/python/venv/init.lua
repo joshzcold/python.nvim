@@ -27,7 +27,7 @@ local update_PATH = function(path)
 end
 
 ---@param venv VEnv
-function M.set_env(venv)
+function M.set_venv_path(venv)
   if venv.source == 'conda' or venv.source == 'micromamba' then
     vim.fn.setenv('CONDA_PREFIX', venv.path)
     vim.fn.setenv('CONDA_DEFAULT_ENV', venv.name)
@@ -133,16 +133,19 @@ M.get_venvs = function(venvs_path)
 end
 
 M.pick_venv = function()
-  vim.ui.select(config.get_venvs(config.venvs_path), {
-    prompt = 'Select python venv',
-    format_item = function(item)
-      return string.format('%s (%s) [%s]', item.name, item.path, item.source)
-    end,
-  }, function(choice)
-    if not choice then
-      return
-    end
-    M.set_venv_path(choice)
+  vim.schedule(function()
+    local items = config.get_venvs(config.venvs_path)
+    vim.ui.select(items, {
+      prompt = 'Select python venv',
+      format_item = function(item)
+        return string.format('%s (%s) [%s]', item.name, item.path, item.source)
+      end,
+    }, function(choice)
+      if not choice then
+        return
+      end
+      M.set_venv_path(choice)
+    end)
   end)
 end
 
