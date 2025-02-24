@@ -3,20 +3,20 @@ local M = {}
 local config = require('python.config')
 local venv_dir = config.auto_create_venv_dir
 
---- Set venv via swenv. Only set venv if its different than current.
+--- Set venv. Only set venv if its different than current.
 --- local venv_dir = settings.auto_create_venv_dir
 ---@param venv_path string full path to venv directory
 ---@param venv_name string name of the venv to set
-local function swenv_set_venv(venv_path, venv_name)
+local function python_set_venv(venv_path, venv_name)
   if venv_path then
-    local swenv_api = require('swenv.api')
+    local python_venv = require('python.venv')
     local current_venv_name = nil
-    local current_venv = swenv_api.get_current_venv()
+    local current_venv = python_venv.current_venv()
     if current_venv then
       current_venv_name = current_venv.name
     end
     if venv_path ~= current_venv_name then
-      swenv_api.set_venv_path({ path = venv_path, name = venv_name })
+      python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
     end
   end
 end
@@ -46,10 +46,10 @@ local function search_up(dir_or_file)
   return found
 end
 
---- Run pdm sync at lock file directory. Set swvenv env path when done.
+--- Run pdm sync at lock file directory. Set env path when done.
 ---@param pdm_lock_path string full path to pdm lock file
 local function pdm_sync(pdm_lock_path)
-  vim.notify('swenv.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
+  vim.notify('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
   vim.system(
     { 'pdm', 'sync' },
@@ -58,12 +58,12 @@ local function pdm_sync(pdm_lock_path)
       on_exit = function(obj)
         vim.schedule(function()
           if obj.code ~= 0 then
-            vim.notify('swenv.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
           else
             local venv_path = dir_name .. '/' .. venv_dir
             local venv_name = vim.fs.basename(dir_name)
-            swenv_set_venv(venv_path, venv_name)
-            vim.notify('swenv.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
+            python_set_venv(venv_path, venv_name)
+            vim.notify('python.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
           end
         end)
       end
@@ -77,7 +77,7 @@ local function pip_install_with_venv(requirements_path)
   local dir_name = vim.fs.dirname(requirements_path)
   local venv_path = dir_name .. '/' .. venv_dir
   vim.notify(
-    'swenv.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_path,
+    'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_path,
     vim.log.levels.INFO
   )
   local python_app = 'python3'
@@ -91,7 +91,7 @@ local function pip_install_with_venv(requirements_path)
     on_exit = function(obj)
       vim.schedule(function()
         if obj.code ~= 0 then
-          vim.notify('swenv.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
+          vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
         else
           local pip_path = venv_path .. '/' .. 'bin/pip'
           local install_args = { 'install', '-r', requirements_path }
@@ -106,10 +106,10 @@ local function pip_install_with_venv(requirements_path)
                 on_exit = function(obj2)
                   vim.schedule(function()
                     if obj2.code ~= 0 then
-                      vim.notify('swenv.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                      vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
                     else
                       local venv_name = vim.fs.basename(dir_name)
-                      swenv_set_venv(venv_path, venv_name)
+                      python_set_venv(venv_path, venv_name)
                       vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
                     end
                   end)
@@ -134,7 +134,7 @@ M.auto_create_set_python_venv = function()
       callback = function(path)
         -- initial set, still want to do dependency install from others if available
         local venv_name = vim.fs.basename(vim.fs.dirname(path))
-        swenv_set_venv(path, venv_name)
+        python_set_venv(path, venv_name)
       end,
     },
     {
