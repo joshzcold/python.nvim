@@ -1,7 +1,10 @@
----@class Python.Commands
+---@class python.Commands
 local M = {}
 
----@param opts? Python.Config
-function M.pick_venv(opts)
-  print("pick_venv", opts)
+local config = require('python.config')
+
+function M.pick_venv()
+  print("pick_venv", config.foo)
 end
+
+return M

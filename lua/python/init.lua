@@ -1,7 +1,7 @@
----@type Python.Commands
+---@class python: python.api
 local M = {}
 
----@param opts? Python.Config
+---@param opts? python.Config
 function M.setup(opts)
   require("python.config").setup(opts)
 end
