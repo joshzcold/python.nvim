@@ -1,4 +1,4 @@
----@class python: python.api
+---@class python
 local M = {}
 
 ---@param opts? python.Config

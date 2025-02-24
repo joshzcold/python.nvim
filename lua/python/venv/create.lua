@@ -1,4 +1,3 @@
-
 local M = {}
 
 local config = require('python.config')
@@ -50,32 +49,31 @@ end
 --- Run pdm sync at lock file directory. Set swvenv env path when done.
 ---@param pdm_lock_path string full path to pdm lock file
 local function pdm_sync(pdm_lock_path)
-  local Job = require('plenary.job')
   vim.notify('swenv.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
-  Job:new({
-    command = 'pdm',
-    args = { 'sync' },
-    cwd = dir_name,
-    on_exit = function(j, _)
-      vim.schedule(function()
-        if j.code ~= 0 then
-          vim.notify('swenv.nvim: ' .. vim.inspect(j._stderr_results), vim.log.levels.ERROR)
-        else
-          local venv_path = dir_name .. '/' .. venv_dir
-          local venv_name = vim.fs.basename(dir_name)
-          swenv_set_venv(venv_path, venv_name)
-          vim.notify('swenv.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
-        end
-      end)
-    end,
-  }):start()
+  vim.system(
+    { 'pdm', 'sync' },
+    {
+      cwd = dir_name,
+      on_exit = function(obj)
+        vim.schedule(function()
+          if obj.code ~= 0 then
+            vim.notify('swenv.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+          else
+            local venv_path = dir_name .. '/' .. venv_dir
+            local venv_name = vim.fs.basename(dir_name)
+            swenv_set_venv(venv_path, venv_name)
+            vim.notify('swenv.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
+          end
+        end)
+      end
+    }
+  )
 end
 
 --- Create venv with python venv module and pip install at location
 ---@param requirements_path string full path to requirements.txt, dev-requirements.txt or pyproject.toml
 local function pip_install_with_venv(requirements_path)
-  local Job = require('plenary.job')
   local dir_name = vim.fs.dirname(requirements_path)
   local venv_path = dir_name .. '/' .. venv_dir
   vim.notify(
@@ -86,40 +84,43 @@ local function pip_install_with_venv(requirements_path)
   if vim.fn.executable(python_app) ~= 1 then
     python_app = 'python'
   end
-  Job:new({
-    command = python_app,
-    args = { '-m', 'venv', venv_path },
+  vim.system(
+    { python_app, '-m', 'venv', venv_path },
+    {
     cwd = dir_name,
-    on_exit = function(j, _)
+    on_exit = function(obj)
       vim.schedule(function()
-        if j.code ~= 0 then
-          vim.notify('swenv.nvim: ' .. vim.inspect(j._stderr_results .. j._stdout_results), vim.log.levels.ERROR)
+        if obj.code ~= 0 then
+          vim.notify('swenv.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
         else
           local pip_path = venv_path .. '/' .. 'bin/pip'
           local install_args = { 'install', '-r', requirements_path }
           if string.find(requirements_path, 'pyproject.toml$') then
             install_args = { 'install', '.' }
           end
-          Job:new({
-            command = pip_path,
-            args = install_args,
-            cwd = dir_name,
-            on_exit = function(k, _)
-              vim.schedule(function()
-                if k.code ~= 0 then
-                  vim.notify('swenv.nvim: ' .. vim.inspect(k._stderr_results), vim.log.levels.ERROR)
-                else
-                  local venv_name = vim.fs.basename(dir_name)
-                  swenv_set_venv(venv_path, venv_name)
-                  vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
+
+          local pip_install_cmd = table.insert{install_args, 1, pip_path}
+          vim.system(
+              pip_install_cmd,
+              {cwd = dir_name,
+                on_exit = function(obj2)
+                  vim.schedule(function()
+                    if obj2.code ~= 0 then
+                      vim.notify('swenv.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                    else
+                      local venv_name = vim.fs.basename(dir_name)
+                      swenv_set_venv(venv_path, venv_name)
+                      vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
+                    end
+                  end)
                 end
-              end)
-            end,
-          }):start()
+              }
+            )
         end
       end)
     end,
-  }):start()
+    }
+  )
 end
 
 --- Automatically create venv directory and use multiple method to auto install dependencies
