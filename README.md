@@ -31,4 +31,5 @@ return {
 
 ## Special Thanks
 
-[swenv,nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting venvs
+[swenv,nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting venvs.
+Use this plugin if you want a more simple venv management plugin for your workflow.
