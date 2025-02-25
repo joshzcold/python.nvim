@@ -103,9 +103,9 @@ local function pip_install_with_venv(requirements_path)
               install_args = { 'install', '.' }
             end
 
-            local pip_install_cmd = table.insert { install_args, 1, pip_path }
+            table.insert(install_args, 1, pip_path)
             vim.system(
-              pip_install_cmd,
+              install_args,
               {
                 cwd = dir_name,
               },
