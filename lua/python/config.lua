@@ -7,6 +7,7 @@ local defaults = {
   -- Should return a list of tables with a `name` and a `path` entry each.
   -- Gets the argument `venvs_path` set below.
   -- By default just lists the entries in `venvs_path`.
+  ---@return VEnv[]
   get_venvs = function(venvs_path)
     return require('python.venv').get_venvs(venvs_path)
   end,
