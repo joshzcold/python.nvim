@@ -98,14 +98,13 @@ local function pip_install_with_venv(requirements_path)
             vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
           else
             local pip_path = venv_path .. '/' .. 'bin/pip'
-            local install_args = { 'install', '-r', requirements_path }
-            if string.find(requirements_path, 'pyproject.toml$') then
-              install_args = { 'install', '.' }
-            end
+            local pip_cmd = { pip_path, 'install', '-r', requirements_path }
 
-            table.insert(install_args, 1, pip_path)
+            if string.find(requirements_path, 'pyproject.toml$') then
+              pip_cmd = { pip_path, 'install', '.' }
+            end
             vim.system(
-              install_args,
+              pip_cmd,
               {
                 cwd = dir_name,
               },
