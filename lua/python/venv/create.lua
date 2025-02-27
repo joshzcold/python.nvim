@@ -1,7 +1,8 @@
 local M = {}
 
 local config = require('python.config')
-local venv_dir = config.auto_create_venv_dir
+local state = require("python.state")
+local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
 
 --- Set venv. Only set venv if its different than current.
 --- local venv_dir = settings.auto_create_venv_dir
@@ -48,7 +49,9 @@ end
 
 --- Run pdm sync at lock file directory. Set env path when done.
 ---@param pdm_lock_path string full path to pdm lock file
-local function pdm_sync(pdm_lock_path)
+---@param venv_dir string full path to pdm lock file
+---@param callback function
+local function pdm_sync(pdm_lock_path, venv_dir, callback)
   vim.notify('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
   vim.system(
@@ -66,7 +69,7 @@ local function pdm_sync(pdm_lock_path)
           local venv_path = dir_name .. '/' .. venv_dir
           local venv_name = vim.fs.basename(dir_name)
           python_set_venv(venv_path, venv_name)
-          vim.notify('python.nvim: set venv: ' .. venv_path, vim.log.levels.INFO)
+          callback()
         end
       )
     end
@@ -75,122 +78,214 @@ end
 
 --- Create venv with python venv module and pip install at location
 ---@param requirements_path string full path to requirements.txt, dev-requirements.txt or pyproject.toml
-local function pip_install_with_venv(requirements_path)
+---@param venv_dir string
+---@param callback function
+local function pip_install_with_venv(requirements_path, venv_dir, callback)
   local dir_name = vim.fs.dirname(requirements_path)
-  local venv_path = dir_name .. '/' .. venv_dir
+  local venv_path = vim.fs.joinpath(dir_name, venv_dir)
   vim.notify(
     'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_path,
     vim.log.levels.INFO
   )
-  local python_app = 'python3'
-  if vim.fn.executable(python_app) ~= 1 then
-    python_app = 'python'
-  end
-  vim.system(
-    { python_app, '-m', 'venv', venv_path },
-    {
-      cwd = dir_name,
-    },
-    function(obj)
-      vim.schedule(
-        function()
-          if obj.code ~= 0 then
-            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
-          else
-            local pip_path = venv_path .. '/' .. 'bin/pip'
-            local pip_cmd = { pip_path, 'install', '-r', requirements_path }
+  vim.schedule(
+    function()
+      local pip_path = venv_path .. '/' .. 'bin/pip'
+      local pip_cmd = { pip_path, 'install', '-r', requirements_path }
 
-            if string.find(requirements_path, 'pyproject.toml$') then
-              pip_cmd = { pip_path, 'install', '.' }
+      if string.find(requirements_path, 'pyproject.toml$') then
+        pip_cmd = { pip_path, 'install', '.' }
+      end
+      vim.system(
+        pip_cmd,
+        {
+          cwd = dir_name,
+        },
+        function(obj2)
+          vim.schedule(function()
+            if obj2.code ~= 0 then
+              vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+            else
+              local venv_name = vim.fs.basename(dir_name)
+              python_set_venv(venv_path, venv_name)
+              callback()
             end
-            vim.system(
-              pip_cmd,
-              {
-                cwd = dir_name,
-              },
-              function(obj2)
-                vim.schedule(function()
-                  if obj2.code ~= 0 then
-                    vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
-                  else
-                    local venv_name = vim.fs.basename(dir_name)
-                    python_set_venv(venv_path, venv_name)
-                    vim.notify('Set venv: ' .. venv_path, vim.log.levels.INFO)
-                  end
-                end)
-              end
-            )
-          end
+          end)
         end
       )
     end
   )
 end
 
+local check_paths = {
+  ['requirements.txt'] = function(install_file, venv_dir, callback)
+    pip_install_with_venv(install_file, venv_dir, callback)
+  end,
+  ['dev-requirements.txt'] = function(install_file, venv_dir, callback)
+    pip_install_with_venv(install_file, venv_dir, callback)
+  end,
+  ['pyproject.toml'] = function(install_file, venv_dir, callback)
+    pip_install_with_venv(install_file, venv_dir, callback)
+  end,
+  ['pdm.lock'] = function(install_file, venv_dir, callback)
+    pdm_sync(install_file, venv_dir, callback)
+  end,
+}
+
+---@return table<string> list of potential python interpreters to use
+local function python_interpreters()
+  -- TODO detect python interpreters from windows
+  if IS_WINDOWS then
+    return { "python3" }
+  end
+  local pythons = vim.fn.globpath("/usr/bin/", 'python3.*', false, true)
+  local interpreters = nil
+  for _, p in pairs(pythons) do
+    if not interpreters then
+      interpreters = {}
+    end
+    if string.match(vim.fs.basename(p), "python3.%d+$") then
+      table.insert(interpreters, 1, p)
+    end
+  end
+  if not interpreters then
+    vim.notify("python.nvim: Warning could not detect python interpreters. Defaulting to python3", vim.log.levels.WARN)
+    interpreters = { "python3" }
+  end
+  return interpreters
+end
+
+---Create the python venv with selected interpreter
+---@param venv_path string path of venv to create
+---@param python_interpreter string path to python executable to use
+---@param callback function
+local function create_venv_with_python(venv_path, python_interpreter, callback)
+  vim.notify('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
+  vim.system(
+    { python_interpreter, '-m', 'venv', venv_path },
+    {},
+    function(obj)
+      if obj.code ~= 0 then
+        vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
+        return
+      end
+      callback()
+    end)
+end
+
+local function set_venv_state()
+  local detect = M.detect_venv(false)
+
+  if detect == nil then
+    vim.notify(
+      "python.nvim: Could not find a python dependency file for this cwd",
+      vim.log.levels.WARN)
+    return
+  end
+
+  local new_parent_dir = detect[1]
+  local detect_val = detect[2]
+
+  local last_parent_dir = Auto_set_python_venv_parent_dir
+  if last_parent_dir ~= new_parent_dir then
+    Auto_set_python_venv_parent_dir = new_parent_dir
+  end
+  local key = new_parent_dir
+  local install_function = check_paths[detect_val.install_method]
+  local venv_path = detect_val.venv_path
+  local install_file = detect_val.install_file
+
+  -- TODO allow user to select if they want this to be path scoped or git repo scoped
+  if detect_val.venv_path == nil or detect_val.python_interpreter == nil then
+    local default_input = config.auto_create_venv_path(new_parent_dir)
+    vim.schedule(function()
+      vim.ui.input({ prompt = "Input new venv path", default = default_input }, function(venv_path_user_input)
+        local wanted_dir = vim.fs.dirname(venv_path_user_input)
+        if vim.fn.isdirectory(wanted_dir) == 0 then
+          vim.notify(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
+            vim.log.levels.ERROR)
+          return
+        end
+        vim.schedule(function()
+          vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter' },
+            function(python_interpreter_user_input)
+              create_venv_with_python(venv_path_user_input, python_interpreter_user_input, function()
+                install_function(install_file, venv_path_user_input, function()
+                  local val = {
+                    python_interpreter = python_interpreter_user_input,
+                    venv_path = venv_path_user_input,
+                    install_method = detect_val.install_method,
+                    install_file = install_file
+                  }
+                  local python_state = state.State()
+                  python_state.venvs[key] = val
+                  state.save(python_state)
+                end)
+              end)
+            end)
+        end)
+      end)
+    end)
+    return
+  end
+  install_function(install_file, venv_path, function() end)
+end
+
 --- Automatically create venv directory and use multiple method to auto install dependencies
 --- Use module level variable Auto_set_python_venv_parent_dir to keep track of the last venv dir, so
 ---   We don't do the creation process again when you are in the same project.
-M.auto_create_set_python_venv = function()
-  local stop = false
-  local check_paths = {
-    {
-      path = venv_dir,
-      callback = function(path)
-        -- initial set, still want to do dependency install from others if available
-        local venv_name = vim.fs.basename(vim.fs.dirname(path))
-        python_set_venv(path, venv_name)
-      end,
-    },
-    {
-      path = 'pdm.lock',
-      callback = function(path)
-        pdm_sync(path)
-        Auto_set_python_venv_parent_dir = vim.fs.dirname(path)
-        stop = true
-      end,
-    },
-    {
-      path = 'requirements.txt',
-      callback = function(path)
-        pip_install_with_venv(path)
-        Auto_set_python_venv_parent_dir = vim.fs.dirname(path)
-        stop = true
-      end,
-    },
-    {
-      path = 'dev-requirements.txt',
-      callback = function(path)
-        pip_install_with_venv(path)
-        Auto_set_python_venv_parent_dir = vim.fs.dirname(path)
-        stop = true
-      end,
-    },
-    {
-      path = 'pyproject.toml',
-      callback = function(path)
-        pip_install_with_venv(path)
-        Auto_set_python_venv_parent_dir = vim.fs.dirname(path)
-        stop = true
-      end,
-    },
-  }
+function M.create_and_install_venv()
+  set_venv_state()
+end
 
-  for _, val in ipairs(check_paths) do
+local function delete_venv_from_state()
+end
+
+local function delete_venv_from_selection()
+end
+
+---Delete a venv from state and filesystem
+---@param select boolean
+function M.delete_venv(select)
+  if select then
+    delete_venv_from_selection()
+  else
+    delete_venv_from_state()
+  end
+end
+
+---@return table<table<string>, PythonStateVEnv> | nil
+---@param notify boolean
+function M.detect_venv(notify)
+  local python_state = state.State()
+
+  for search_path, _ in pairs(check_paths) do
     local found_path = nil
-    local search_path = val.path
-    local callback = val.callback
-    if stop then
-      return
-    end
     found_path = search_up(search_path)
     if found_path ~= nil then
-      local last_parent_dir = Auto_set_python_venv_parent_dir
-      local new_parent_dir = vim.fs.dirname(found_path)
-      if last_parent_dir ~= new_parent_dir then
-        callback(found_path)
+      -- TODO allow user to select if they want this to be path scoped or git repo scoped
+      local parent_dir = vim.fs.dirname(found_path)
+      local key = parent_dir
+
+      if python_state.venvs[key] ~= nil then
+        local venv_path = python_state.venvs[key].venv_path
+        python_set_venv(venv_path, vim.fs.basename(parent_dir))
+        vim.notify(string.format("python.nvim: Set venv '%s'", venv_path))
+        return { key, python_state.venvs[key] }
       end
+      if notify then
+        vim.notify(
+          string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", parent_dir),
+          vim.log.levels.WARN)
+      end
+      return { key, {
+        install_method = search_path,
+        install_file = found_path,
+        python_interpreter = nil,
+        venv_path = nil,
+      } }
     end
   end
+  return nil
 end
 
 return setmetatable(M, {

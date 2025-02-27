@@ -11,18 +11,14 @@ local defaults = {
   get_venvs = function(venvs_path)
     return require('python.venv').get_venvs(venvs_path)
   end,
-  -- Path passed to `get_venvs`.
+  -- Path for venvs picker
   venvs_path = vim.fn.expand('~/.virtualenvs'),
   -- Something to do after setting an environment
   post_set_venv = nil,
-  -- Attempt detect and auto create venv directories using
-  -- pdm
-  -- requirements.txt
-  -- dev-requirements.txt
-  -- pyproject.toml
-  auto_create_venv = false,
-  -- directory to create for venv auto creation
-  auto_create_venv_dir = '.venv',
+  -- base path for creating new venvs
+  auto_create_venv_path = function(parent_dir)
+    return vim.fs.joinpath(parent_dir, '.venv')
+  end
 }
 
 ---@param opts? python.Config

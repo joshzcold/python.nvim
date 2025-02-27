@@ -5,8 +5,6 @@
 
 local M = {}
 
-local config = require("python.config")
-local create = require("python.venv.create")
 local current_venv = nil
 
 
@@ -28,6 +26,7 @@ end
 
 ---@param venv VEnv
 function M.set_venv_path(venv)
+  local config = require("python.config")
   if venv.source == 'conda' or venv.source == 'micromamba' then
     vim.fn.setenv('CONDA_PREFIX', venv.path)
     vim.fn.setenv('CONDA_DEFAULT_ENV', venv.name)
@@ -73,7 +72,7 @@ local get_pixi_base_path = function()
   local current_dir = vim.fn.getcwd()
   local pixi_root = vim.fs.joinpath(current_dir, '.pixi')
 
-  if not vim.fn.filereadable(pixi_root) then
+  if vim.fn.filereadable(pixi_root) == 0 then
     return nil
   else
     return vim.fs.joinpath(pixi_root, 'envs')
@@ -133,6 +132,7 @@ M.get_venvs = function(venvs_path)
 end
 
 M.pick_venv = function()
+  local config = require("python.config")
   vim.schedule(function()
     local items = config.get_venvs(config.venvs_path)
     vim.ui.select(items, {
@@ -149,13 +149,6 @@ M.pick_venv = function()
   end)
 end
 
-M.auto_venv = function()
-  -- If enabled then attempt to create and set a new venv directory
-  if config.auto_create_venv then
-    create.auto_create_set_python_venv()
-    return
-  end
-end
 
 return setmetatable(M, {
   __index = function(_, k)
