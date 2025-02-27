@@ -1,17 +1,27 @@
 local M = {}
-local data_path = vim.fn.stdpath("data")
-M.data_path = data_path
 
 ---@class PythonStateVEnv
 ---@field python_interpreter string
 ---@field venv_path string
----@field venv_cwd_path string
----@field venv_git_project_path string
+PythonStateVEnv = {}
 
+--[[
+Should look like this
+{
+    venvs(PythonStateVEnv[]) = {
+        "/path/to/cwd/directory/of/venv" = {
+            python_interpreter = "python3.8.2",
+            venv_path = "/path/to/cwd/directory/of/venv/.venv",
+        },
+    }
+}
+
+]] --
 ---@class PythonState
----@field venvs PythonStateVEnv[]
+---@field venvs table<string, PythonStateVEnv>
 PythonState = PythonState or {}
 
+local data_path = vim.fn.stdpath("data")
 local state_dir = vim.fs.joinpath(data_path, "python.nvim")
 local state_path = vim.fs.joinpath(state_dir, "state.json")
 
@@ -51,11 +61,11 @@ local function merge_table_impl(t1, t2)
 end
 
 local function merge_tables(...)
-    local out = {}
-    for i = 1, select("#", ...) do
-        merge_table_impl(out, select(i, ...))
-    end
-    return out
+  local out = {}
+  for i = 1, select("#", ...) do
+    merge_table_impl(out, select(i, ...))
+  end
+  return out
 end
 
 ---@param new_state PythonState
