@@ -18,6 +18,7 @@ local function python_set_venv(venv_path, venv_name)
     end
     if venv_path ~= current_venv_name then
       python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
+      vim.notify("Set venv at: ".. venv_path)
     end
   end
 end
@@ -55,21 +56,30 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
   vim.notify('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
   vim.system(
-    { 'pdm', 'sync' },
+    { 'pdm', 'use', '-f', venv_dir },
     {
-      cwd = dir_name,
+      cwd = dir_name
     },
-    function(obj)
-      vim.schedule(
-        function()
-          if obj.code ~= 0 then
-            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
-            return
-          end
-          local venv_path = dir_name .. '/' .. venv_dir
-          local venv_name = vim.fs.basename(dir_name)
-          python_set_venv(venv_path, venv_name)
-          callback()
+    function(obj1)
+      if obj1.code ~= 0 then
+        vim.notify('python.nvim: ' .. vim.inspect(obj1.stderr), vim.log.levels.ERROR)
+        return
+      end
+      vim.system(
+        { 'pdm', 'sync' },
+        {
+          cwd = dir_name
+        },
+        function(obj2)
+          vim.schedule(
+            function()
+              if obj2.code ~= 0 then
+                vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                return
+              end
+              callback()
+            end
+          )
         end
       )
     end
@@ -105,8 +115,6 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
             if obj2.code ~= 0 then
               vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
             else
-              local venv_name = vim.fs.basename(dir_name)
-              python_set_venv(venv_path, venv_name)
               callback()
             end
           end)
@@ -129,6 +137,10 @@ local check_paths = {
   ['pdm.lock'] = function(install_file, venv_dir, callback)
     pdm_sync(install_file, venv_dir, callback)
   end,
+}
+
+local check_paths_ordered_keys = {
+  "pdm.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
 }
 
 ---@return table<string> list of potential python interpreters to use
@@ -217,6 +229,10 @@ local function set_venv_state()
                     install_file = install_file
                   }
                   local python_state = state.State()
+
+                  local venv_name = vim.fs.basename(vim.fs.dirname(install_file))
+                  python_set_venv(val.venv_path, venv_name)
+                  --- TODO preform LSP reloading functions
                   python_state.venvs[key] = val
                   state.save(python_state)
                 end)
@@ -237,7 +253,17 @@ function M.create_and_install_venv()
   set_venv_state()
 end
 
-local function delete_venv_from_state()
+---Remove venv from state by key
+---@param venv_key any
+local function delete_venv_from_state(venv_key)
+  local python_state = state.State()
+  for k,v in ipairs(python_state.venvs) do
+      if v == venv_key then
+          table.remove(python_state.venvs, k)
+          break
+      end
+  end
+  state.save(python_state)
 end
 
 local function delete_venv_from_selection()
@@ -258,7 +284,7 @@ end
 function M.detect_venv(notify)
   local python_state = state.State()
 
-  for search_path, _ in pairs(check_paths) do
+  for _, search_path in pairs(check_paths_ordered_keys) do
     local found_path = nil
     found_path = search_up(search_path)
     if found_path ~= nil then
@@ -268,9 +294,13 @@ function M.detect_venv(notify)
 
       if python_state.venvs[key] ~= nil then
         local venv_path = python_state.venvs[key].venv_path
-        python_set_venv(venv_path, vim.fs.basename(parent_dir))
-        vim.notify(string.format("python.nvim: Set venv '%s'", venv_path))
-        return { key, python_state.venvs[key] }
+        if vim.fn.isdirectory(venv_path) == 0 then
+          delete_venv_from_state(key)
+        else
+          python_set_venv(venv_path, vim.fs.basename(parent_dir))
+          vim.notify(string.format("python.nvim: Set venv '%s'", venv_path))
+          return { key, python_state.venvs[key] }
+        end
       end
       if notify then
         vim.notify(
