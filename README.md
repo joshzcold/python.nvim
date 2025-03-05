@@ -21,8 +21,8 @@ return {
 ## Features
 
 - [X] Switch between virtual envs interactively
-- [ ] Interactively create virtual envs and install dependencies
-    - [ ] Reload all the common python LSP servers if found to be running
+- [X] Interactively create virtual envs and install dependencies
+    - [X] Reload all the common python LSP servers if found to be running
     - [ ] Lot of commands to control venvs
 - [ ] Keep track of envs/pythons per project in state
 - [ ] Easier setup of python debugging
