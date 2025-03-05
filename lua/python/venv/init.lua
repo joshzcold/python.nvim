@@ -27,6 +27,7 @@ end
 ---@param venv VEnv
 function M.set_venv_path(venv)
   local config = require("python.config")
+  local lsp = require("python.lsp")
   if venv.source == 'conda' or venv.source == 'micromamba' then
     vim.fn.setenv('CONDA_PREFIX', venv.path)
     vim.fn.setenv('CONDA_DEFAULT_ENV', venv.name)
@@ -37,7 +38,6 @@ function M.set_venv_path(venv)
   current_venv = venv
   -- TODO: remove old path
   update_PATH(venv.path)
-
   if config.post_set_venv then
     config.post_set_venv(venv)
   end

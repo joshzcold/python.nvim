@@ -6,15 +6,41 @@ function M.setup(opts)
   require("python.config").setup(opts)
 
   local id = vim.api.nvim_create_augroup("python_nvim_autocmd_group", { clear = true })
-  vim.api.nvim_create_autocmd("FileType", {
+
+  -- Auto load venv on lsp server attach
+  vim.api.nvim_create_autocmd({ "LspAttach" }, {
+    pattern = { "*.py" },
+    group = id,
+    callback = function(args)
+      local create = require("python.venv.create")
+      local lsp = require("python.lsp")
+
+      if not args.data.client_id then
+        return
+      end
+
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
+
+      if client == nil or lsp.python_lsp_servers[client.name] == nil then
+        return
+      end
+
+      create.detect_venv(true)
+    end,
+  })
+
+  -- Load up commands for users
+  vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = { "python" },
     group = id,
     callback = function()
+      local lsp = require("python.lsp")
       local create = require("python.venv.create")
-      create.detect_venv(true)
-
       vim.api.nvim_create_user_command("PythonVEnvInstall", function()
         create.create_and_install_venv()
+      end, {})
+      vim.api.nvim_create_user_command("PythonVEnvReloadLSPs", function()
+        lsp.notify_workspace_did_change()
       end, {})
       vim.api.nvim_create_user_command("PythonVEnvDelete", function()
         create.delete_venv(false)

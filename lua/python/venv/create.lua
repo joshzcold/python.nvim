@@ -9,6 +9,7 @@ local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
 ---@param venv_path string full path to venv directory
 ---@param venv_name string name of the venv to set
 local function python_set_venv(venv_path, venv_name)
+  local lsp = require("python.lsp")
   if venv_path then
     local python_venv = require('python.venv')
     local current_venv_name = nil
@@ -18,8 +19,9 @@ local function python_set_venv(venv_path, venv_name)
     end
     if venv_path ~= current_venv_name then
       python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
-      vim.notify("Set venv at: ".. venv_path)
+      vim.notify("python.nvim: set venv at: ".. venv_path)
     end
+    lsp.notify_workspace_did_change()
   end
 end
 
@@ -232,7 +234,6 @@ local function set_venv_state()
 
                   local venv_name = vim.fs.basename(vim.fs.dirname(install_file))
                   python_set_venv(val.venv_path, venv_name)
-                  --- TODO preform LSP reloading functions
                   python_state.venvs[key] = val
                   state.save(python_state)
                 end)
@@ -298,7 +299,6 @@ function M.detect_venv(notify)
           delete_venv_from_state(key)
         else
           python_set_venv(venv_path, vim.fs.basename(parent_dir))
-          vim.notify(string.format("python.nvim: Set venv '%s'", venv_path))
           return { key, python_state.venvs[key] }
         end
       end
