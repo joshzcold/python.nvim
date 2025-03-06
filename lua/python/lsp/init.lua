@@ -1,5 +1,15 @@
 local M = {}
 
+local function call_did_change_configuration(client, config)
+  client.settings = config
+  if client.notify("workspace/didChangeConfiguration", { settings = client.settings }) then
+    vim.notify(string.format("python.nvim: Updated configuration of lsp server: '%s'", client.name),
+      vim.log.levels.INFO)
+  else
+    vim.notify(string.format("python.nvim: Updating configuration of lsp server: '%s' has failed", client.name),
+      vim.log.levels.ERROR)
+  end
+end
 
 M.python_lsp_servers = {
   basedpyright = {
@@ -9,35 +19,36 @@ M.python_lsp_servers = {
           pythonPath = venv_path
         }
       })
-      client.settings = new_settings
-      if client.notify("workspace/didChangeConfiguration", { settings = client.settings }) then
-        vim.notify(string.format("python.nvim: Updated configuration of lsp server: '%s'", client.name),
-          vim.log.levels.INFO)
-      else
-        vim.notify(string.format("python.nvim: Updating configuration of lsp server: '%s' has failed", client.name),
-          vim.log.levels.ERROR)
-      end
+      call_did_change_configuration(client, new_settings)
     end
   },
   pyright = {
     callback = function(venv_path, client)
-      M.python_lsp_servers['basedpyright'].callback(venv_path, client)
-    end
-  },
-  pylsp = {
-    callback = function(_, _)
-      vim.cmd(":LspRestart pylsp")
-    end
-  }, -- TODO set specific settings path
-  ["jedi-language-server"] = {
-    callback = function(venv_path, client)
-      return {
+      local new_settings = vim.tbl_deep_extend("force", client.settings, {
         python = {
           pythonPath = venv_path
         }
-      }
+      })
+      call_did_change_configuration(client, new_settings)
     end
-  }, -- TODO set specific settings path
+  },
+  pylsp = {
+    -- python-lsp-server does not have a specific setting for python path
+    callback = function(_, client)
+      vim.cmd(":LspRestart pylsp")
+      vim.notify(string.format("python.nvim: restart lsp client: '%s'", client.name),
+        vim.log.levels.INFO)
+    end
+  },
+  jedi_language_server = {
+    -- jedi_language_server doesn't support didChangeConfiguration
+    -- https://github.com/pappasam/jedi-language-server/issues/58
+    callback = function(_, client)
+      vim.notify(string.format("python.nvim: restart lsp client: '%s'", client.name),
+        vim.log.levels.INFO)
+      vim.cmd(":LspRestart jedi_language_server")
+    end
+  },
 }
 
 function M.notify_workspace_did_change()
