@@ -55,9 +55,9 @@ function M.notify_workspace_did_change()
       goto continue
     end
     local config_block = M.python_lsp_servers[client.name].python_path(venv_python)
-    local new_settings = vim.tbl_deep_extend("force", client.config.settings, config_block)
-    client.config.settings = new_settings
-    if client.notify("workspace/didChangeConfiguration", { settings = client.config.settings }) then
+    local new_settings = vim.tbl_deep_extend("force", client.settings, config_block)
+    client.settings = new_settings
+    if client.notify("workspace/didChangeConfiguration", { settings = client.settings }) then
       vim.notify(string.format("python.nvim: Updated configuration of lsp server: '%s'", client.name),
         vim.log.levels.INFO)
     else
