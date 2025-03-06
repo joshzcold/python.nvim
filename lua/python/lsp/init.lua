@@ -3,34 +3,34 @@ local M = {}
 
 M.python_lsp_servers = {
   basedpyright = {
-    python_path = function(venv_path)
-      return {
+    callback = function(venv_path, client)
+      local new_settings = vim.tbl_deep_extend("force", client.settings, {
         python = {
           pythonPath = venv_path
         }
-      }
+      })
+      client.settings = new_settings
+      if client.notify("workspace/didChangeConfiguration", { settings = client.settings }) then
+        vim.notify(string.format("python.nvim: Updated configuration of lsp server: '%s'", client.name),
+          vim.log.levels.INFO)
+      else
+        vim.notify(string.format("python.nvim: Updating configuration of lsp server: '%s' has failed", client.name),
+          vim.log.levels.ERROR)
+      end
     end
   },
   pyright = {
-    python_path = function(venv_path)
-      return {
-        python = {
-          pythonPath = venv_path
-        }
-      }
+    callback = function(venv_path, client)
+      M.python_lsp_servers['basedpyright'].callback(venv_path, client)
     end
   },
   pylsp = {
-    python_path = function(venv_path)
-      return {
-        python = {
-          pythonPath = venv_path
-        }
-      }
+    callback = function(_, _)
+      vim.cmd(":LspRestart pylsp")
     end
   }, -- TODO set specific settings path
   ["jedi-language-server"] = {
-    python_path = function(venv_path)
+    callback = function(venv_path, client)
       return {
         python = {
           pythonPath = venv_path
@@ -54,16 +54,7 @@ function M.notify_workspace_did_change()
     if M.python_lsp_servers[client.name] == nil then
       goto continue
     end
-    local config_block = M.python_lsp_servers[client.name].python_path(venv_python)
-    local new_settings = vim.tbl_deep_extend("force", client.settings, config_block)
-    client.settings = new_settings
-    if client.notify("workspace/didChangeConfiguration", { settings = client.settings }) then
-      vim.notify(string.format("python.nvim: Updated configuration of lsp server: '%s'", client.name),
-        vim.log.levels.INFO)
-    else
-      vim.notify(string.format("python.nvim: Updating configuration of lsp server: '%s' has failed", client.name),
-        vim.log.levels.ERROR)
-    end
+    M.python_lsp_servers[client.name].callback(venv_python, client)
     ::continue::
   end
 end
