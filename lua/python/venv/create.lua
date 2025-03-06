@@ -17,11 +17,11 @@ local function python_set_venv(venv_path, venv_name)
     if current_venv then
       current_venv_name = current_venv.name
     end
-    if venv_path ~= current_venv_name then
+    if vim.fs.basename(venv_path) ~= current_venv_name then
       python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
-      vim.notify("python.nvim: set venv at: ".. venv_path)
+      vim.notify("python.nvim: set venv at: " .. venv_path)
+      lsp.notify_workspace_did_change()
     end
-    lsp.notify_workspace_did_change()
   end
 end
 
@@ -258,11 +258,11 @@ end
 ---@param venv_key any
 local function delete_venv_from_state(venv_key)
   local python_state = state.State()
-  for k,v in ipairs(python_state.venvs) do
-      if v == venv_key then
-          table.remove(python_state.venvs, k)
-          break
-      end
+  for k, v in ipairs(python_state.venvs) do
+    if v == venv_key then
+      table.remove(python_state.venvs, k)
+      break
+    end
   end
   state.save(python_state)
 end
@@ -280,10 +280,40 @@ function M.delete_venv(select)
   end
 end
 
+--- Interactively set a venv in state.
+--- This is used when users manually select a venv and want it cached for next run.
+---@param venv_path string Path to venv to save for this cwd
+function M.user_set_venv_in_state_confirmation(venv_path)
+  local cwd = vim.fn.getcwd()
+  local python_state = state.State()
+  vim.ui.select({ "Yes", "No" }, {
+    prompt = string.format("Save venv path for this cwd? '%s' -> '%s'", cwd, venv_path)
+  }, function(choice)
+    if choice == "Yes" then
+      python_state.venvs[cwd] = {
+        python_interpreter = "unknown",
+        venv_path = venv_path,
+        install_method = "unknown",
+        install_file = "unknown"
+      }
+      state.save(python_state)
+      vim.notify(string.format("python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it."))
+    end
+  end)
+end
+
 ---@return table<table<string>, PythonStateVEnv> | nil
 ---@param notify boolean
 function M.detect_venv(notify)
   local python_state = state.State()
+
+  local cwd = vim.fn.getcwd()
+
+  -- set venv if cwd is found in state before doing searches.
+  if python_state.venvs[cwd] ~= nil then
+    python_set_venv(python_state.venvs[cwd].venv_path, vim.fs.basename(python_state.venvs[cwd].venv_path))
+    return { cwd, python_state.venvs[cwd] }
+  end
 
   for _, search_path in pairs(check_paths_ordered_keys) do
     local found_path = nil

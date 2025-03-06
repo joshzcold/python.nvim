@@ -133,6 +133,7 @@ end
 
 M.pick_venv = function()
   local config = require("python.config")
+  local create = require("python.venv.create")
   vim.schedule(function()
     local items = config.get_venvs(config.venvs_path)
     vim.ui.select(items, {
@@ -145,6 +146,7 @@ M.pick_venv = function()
         return
       end
       M.set_venv_path(choice)
+      create.user_set_venv_in_state_confirmation(choice.path)
     end)
   end)
 end
