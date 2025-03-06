@@ -3,13 +3,14 @@ local M = {}
 
 ---@param opts? python.Config
 function M.setup(opts)
-  require("python.config").setup(opts)
+  local config = require("python.config")
+  config.setup(opts)
 
   local id = vim.api.nvim_create_augroup("python_nvim_autocmd_group", { clear = true })
 
   -- Auto load venv on lsp server attach
   vim.api.nvim_create_autocmd({ "LspAttach" }, {
-    pattern = { "*.py" },
+    pattern = config.auto_venv_lsp_attach_patterns,
     group = id,
     callback = function(args)
       local create = require("python.venv.create")
@@ -21,7 +22,7 @@ function M.setup(opts)
 
       local client = vim.lsp.get_client_by_id(args.data.client_id)
 
-      if client == nil or lsp.python_lsp_servers[client.name] == nil then
+      if client == nil then
         return
       end
 

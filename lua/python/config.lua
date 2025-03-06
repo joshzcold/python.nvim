@@ -18,7 +18,11 @@ local defaults = {
   -- base path for creating new venvs
   auto_create_venv_path = function(parent_dir)
     return vim.fs.joinpath(parent_dir, '.venv')
-  end
+  end,
+  -- Patterns for autocmd LspAttach that trigger the auto venv logic
+  -- Add onto this list if you depend on venvs for other file types
+  -- like .yaml, .yml for ansible
+  auto_venv_lsp_attach_patterns = { "*.py" }
 }
 
 ---@param opts? python.Config

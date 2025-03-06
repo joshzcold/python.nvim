@@ -49,6 +49,14 @@ M.python_lsp_servers = {
       vim.cmd(":LspRestart jedi_language_server")
     end
   },
+  -- For my homies in devops
+  ansiblels = {
+    callback = function(_, client)
+      vim.notify(string.format("python.nvim: restart lsp client: '%s'", client.name),
+        vim.log.levels.INFO)
+      vim.cmd(":LspRestart ansiblels")
+    end
+  }
 }
 
 function M.notify_workspace_did_change()
