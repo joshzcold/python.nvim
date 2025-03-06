@@ -311,7 +311,8 @@ function M.user_set_venv_in_state_confirmation(venv_path)
         install_file = "unknown"
       }
       state.save(python_state)
-      vim.notify(string.format("python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it."))
+      vim.notify(string.format("python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it.",
+        venv_path, cwd))
     end
   end)
 end
