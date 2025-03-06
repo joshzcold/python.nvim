@@ -310,7 +310,7 @@ function M.detect_venv(notify)
   local cwd = vim.fn.getcwd()
 
   -- set venv if cwd is found in state before doing searches.
-  if python_state.venvs[cwd] ~= nil then
+  if python_state.venvs[cwd] ~= nil and vim.fn.isdirectory(python_state.venvs[cwd].venv_path) ~= 0 then
     python_set_venv(python_state.venvs[cwd].venv_path, vim.fs.basename(python_state.venvs[cwd].venv_path))
     return { cwd, python_state.venvs[cwd] }
   end
