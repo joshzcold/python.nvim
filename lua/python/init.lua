@@ -32,7 +32,7 @@ function M.setup(opts)
 
   -- Load up commands for users
   vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = { "python" },
+    pattern = config.command_setup_filetypes,
     group = id,
     callback = function()
       local lsp = require("python.lsp")

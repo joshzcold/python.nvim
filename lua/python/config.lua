@@ -22,7 +22,10 @@ local defaults = {
   -- Patterns for autocmd LspAttach that trigger the auto venv logic
   -- Add onto this list if you depend on venvs for other file types
   -- like .yaml, .yml for ansible
-  auto_venv_lsp_attach_patterns = { "*.py" }
+  auto_venv_lsp_attach_patterns = { "*.py" },
+
+  -- Filetypes to activate commands for python.nvim
+  command_setup_filetypes = { "python" }
 }
 
 ---@param opts? python.Config
