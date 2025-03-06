@@ -268,6 +268,20 @@ local function delete_venv_from_state(venv_key)
 end
 
 local function delete_venv_from_selection()
+  local python_state = state.State()
+
+  local keys = {}
+  for cwd, _ in pairs(python_state.venvs) do
+    table.insert(keys, cwd)
+  end
+
+  vim.ui.select(keys, {
+    prompt = "Delete venv project from state"
+  }, function(choice)
+    python_state.venvs[choice] = nil
+    state.save(python_state)
+    vim.notify(string.format("python.nvim: Removed '%s' from state.", choice))
+  end)
 end
 
 ---Delete a venv from state and filesystem
