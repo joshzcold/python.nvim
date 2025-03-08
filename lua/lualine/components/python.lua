@@ -15,7 +15,7 @@ function M:update_status()
   if venv then
     return venv.name
   else
-    return ''
+    return 'no venv'
   end
 end
 
