@@ -37,7 +37,9 @@ function M.setup(opts)
     group = id,
     callback = function()
       local commands = require("python.commands")
+      local dap = require("python.dap")
       commands.load_commands()
+      dap.load_dap_commands()
     end,
   })
 end
