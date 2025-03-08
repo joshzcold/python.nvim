@@ -2,6 +2,8 @@
 
 M = {}
 
+local state = require("python.state")
+
 --- Get venv for DAP functions
 ---@return VEnv | nil venv
 local function get_venv()
@@ -34,7 +36,77 @@ local function prepare_debugpy(callback)
   )
 end
 
+--- Interactively create dap configuration
+---@param cwd string current working directory for python_state key
+---@param venv VEnv venv to attach to pythonPath
+---@param python_state  PythonState python_state object
+local function create_dap_config(cwd, venv, python_state)
+  local dap = require("dap")
+  vim.ui.select({ "file", "file:args", "program:args" }, {
+    prompt = "python.nvim: Select new dap style configuration"
+  }, function(choice)
+    local config = {
+      type = 'python',
+      request = 'launch',
+      name = cwd,
+      program = '${file}',
+      pythonPath = vim.fs.joinpath(venv.path, "bin", "python")
+    }
+
+    if choice == "file:args" then
+      vim.ui.input({
+        prompt = "Program Arguments: "
+      }, function(input)
+        local args = vim.split(input, " ")
+        config['args'] = args
+      end)
+    elseif choice == "program:args" then
+      vim.ui.input({
+        prompt = "Program: "
+      }, function(program)
+        vim.ui.input({
+          prompt = "Program Arguments: "
+        }, function(input)
+          local args = vim.split(input, " ")
+          config['program'] = program
+          config['args'] = args
+        end)
+      end)
+    end
+    python_state.dap[cwd] = config
+    state.save(python_state)
+    dap.run(config)
+  end)
+end
+
 function M.load_dap_commands()
+  local dap = require("dap")
+  vim.api.nvim_create_user_command("PythonDap", function()
+    prepare_debugpy(function(venv)
+      vim.schedule(function()
+        local dap_python = require("dap-python")
+        dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
+        local python_state = state.State()
+        local cwd = vim.fn.getcwd()
+        if python_state.dap[cwd] == nil then
+            create_dap_config(cwd, venv, python_state)
+        else
+          vim.ui.select({ "Yes", "No" }, {
+            prompt = "Use this config?: " .. vim.inspect(python_state.dap[cwd])
+          }, function(choice)
+            if choice == "Create New" then
+              create_dap_config(cwd, venv, python_state)
+              return
+            end
+            dap.run(python_state.dap[cwd])
+          end)
+        end
+      end)
+    end)
+  end, {
+    desc = "python.nvim: create or list dap configure"
+  })
+
   vim.api.nvim_create_user_command("PythonDapPytestTestMethod", function()
     prepare_debugpy(function(venv)
       vim.schedule(function()

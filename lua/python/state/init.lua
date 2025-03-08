@@ -7,6 +7,11 @@ local M = {}
 ---@field install_file string
 PythonStateVEnv = {}
 
+---@class PythonStateDap
+---@field file string
+---@field args string[]
+PythonStateDap = {}
+
 --[[
 Should look like this
 {
@@ -17,14 +22,22 @@ Should look like this
             install_method = "pdm" | "requirements.txt" | "dev-requirements.txt",
             install_file = "/path/to/installation/file/requirements.txt",
         },
+    },
+    dap(PythonStateDap[]) = {
+        "/path/to/cwd/directory/of/venv" = {
+            file = "program.py",
+            args = {"-foo", "bar"}
+        },
     }
 }
 
 ]] --
 ---@class PythonState
 ---@field venvs table<string, PythonStateVEnv>
+---@field dap table<string, dap.Configuration>
 PythonState = PythonState or {
-  venvs = {}
+  venvs = {},
+  dap = {}
 }
 
 local data_path = vim.fn.stdpath("data")
@@ -49,6 +62,12 @@ function M.State()
   end
 
   PythonState = vim.json.decode(state_file_text)
+  if PythonState.venvs == nil then
+    PythonState.venvs = {}
+  end
+  if PythonState.dap == nil then
+    PythonState.dap = {}
+  end
   return PythonState
 end
 
