@@ -14,7 +14,7 @@ function M.setup(opts)
     group = id,
     callback = function(args)
       local create = require("python.venv.create")
-      local lsp = require("python.lsp")
+      local lsp_commands = require("python.lsp.commands")
 
       if not args.data.client_id then
         return
@@ -26,6 +26,7 @@ function M.setup(opts)
         return
       end
 
+      lsp_commands.load_lsp_server_commands()
       create.detect_venv(true)
     end,
   })
@@ -35,26 +36,14 @@ function M.setup(opts)
     pattern = config.command_setup_filetypes,
     group = id,
     callback = function()
-      local lsp = require("python.lsp")
-      local create = require("python.venv.create")
-      vim.api.nvim_create_user_command("PythonVEnvInstall", function()
-        create.create_and_install_venv()
-      end, {})
-      vim.api.nvim_create_user_command("PythonVEnvReloadLSPs", function()
-        lsp.notify_workspace_did_change()
-      end, {})
-      vim.api.nvim_create_user_command("PythonVEnvDelete", function()
-        create.delete_venv(false)
-      end, {})
-      vim.api.nvim_create_user_command("PythonVEnvDeleteSelect", function()
-        create.delete_venv(true)
-      end, {})
+      local commands = require("python.commands")
+      commands.load_commands()
     end,
   })
 end
 
 return setmetatable(M, {
   __index = function(_, k)
-    return require("python.commands")[k]
+    return require("python")[k]
   end,
 })
