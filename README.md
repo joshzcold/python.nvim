@@ -37,6 +37,8 @@ return {
   - [ ] Function to swap type checking mode for pyright, basedpyright
   - [ ] Function to launch test method, class, etc. in DAP
 
+- [ ] Library of snippets
+
 ## Supported python package managers
 
 | Manager | Install File         | Install Method   |
