@@ -1,6 +1,6 @@
 -- LSP user commands
 
-M = {}
+local M = {}
 
 local function pyright_commands()
   vim.api.nvim_create_user_command("PythonPyRightChangeTypeCheckingMode", function(opts)
@@ -53,7 +53,7 @@ local function based_pyright_commands()
 end
 
 --- Load specific commands if lsp servers are found
-function M.load_lsp_server_commands()
+function M.load_commands()
   local clients = vim.lsp.get_clients()
   if not clients then
     return

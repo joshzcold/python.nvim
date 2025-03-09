@@ -14,7 +14,7 @@ function M.setup(opts)
     group = id,
     callback = function(args)
       local create = require("python.venv.create")
-      local lsp_commands = require("python.lsp.commands")
+      local lsp = require("python.lsp.commands")
 
       if not args.data.client_id then
         return
@@ -26,7 +26,7 @@ function M.setup(opts)
         return
       end
 
-      lsp_commands.load_lsp_server_commands()
+      lsp.load_commands()
       create.detect_venv(true)
     end,
   })
@@ -38,8 +38,10 @@ function M.setup(opts)
     callback = function()
       local commands = require("python.commands")
       local dap = require("python.dap")
+      local ts = require("python.treesitter.commands")
       commands.load_commands()
-      dap.load_dap_commands()
+      dap.load_commands()
+      ts.load_commands()
     end,
   })
 end

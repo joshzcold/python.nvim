@@ -51,8 +51,8 @@ return {
 
 - [ ] Easier setup of python debugging
 
-  - [ ] Automatically install debugpy into venv
-  - [ ] Interactively create a DAP config for a program per project
+  - [X] Automatically install debugpy into venv
+  - [ ] Interactively create a DAP config for a program, saving configuration.
 
 - [ ] Utility features
 
@@ -60,6 +60,9 @@ return {
   - [X] Function to launch test method, class, etc. in DAP
 
 - [ ] Library of snippets
+
+-  [ ] Treesitter integration
+    - [ ] Library of functions utilizing treesitter
 
 ## Supported python package managers
 

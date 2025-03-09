@@ -1,6 +1,6 @@
 --- DAP integrations
 
-M = {}
+local M = {}
 
 local state = require("python.state")
 
@@ -79,7 +79,7 @@ local function create_dap_config(cwd, venv, python_state)
   end)
 end
 
-function M.load_dap_commands()
+function M.load_commands()
   local dap = require("dap")
   vim.api.nvim_create_user_command("PythonDap", function()
     prepare_debugpy(function(venv)

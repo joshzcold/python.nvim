@@ -1,5 +1,5 @@
 -- python.nvim commands
-M = {}
+local M = {}
 
 function M.load_commands()
   local lsp = require("python.lsp")
