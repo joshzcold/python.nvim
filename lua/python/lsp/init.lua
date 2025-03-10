@@ -49,6 +49,15 @@ M.python_lsp_servers = {
       vim.cmd(":LspRestart jedi_language_server")
     end
   },
+  -- TODO find better method when sith-lsp becomes more widely available 
+  -- https://github.com/LaBatata101/sith-language-server
+  SithLSP = {
+    callback = function(_, client)
+      vim.notify(string.format("python.nvim: restart lsp client: '%s'", client.name),
+        vim.log.levels.INFO)
+      vim.cmd(":LspRestart SithLSP")
+    end
+  },
   -- For my homies in devops
   ansiblels = {
     callback = function(_, client)
