@@ -43,7 +43,7 @@ end
 --   type: string
 -- }]
 M.get_nodes = function(query, lang, defaults, bufnr)
-  if lang ~= 'go' then
+  if lang ~= 'python' then
     return nil
   end
   bufnr = bufnr or 0
