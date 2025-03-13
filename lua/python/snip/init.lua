@@ -138,6 +138,89 @@ local snippets = {
       show_condition = function() return true end,
       condition = function() return true end,
     }
+  ),
+  ls.s(
+    {
+      trig = "switch_case",
+      name = "Match-Case statement",
+      dscr = "Python Match Case statement with default case."
+    },
+    fmt([[
+      match {var}:
+        case "{one}":
+          ...{finally}
+        case _:
+          ...
+    ]], {
+      var = ls.i(1, { "var" }),
+      one = ls.i(2, { "one" }),
+      finally = ls.i(0)
+    }),
+
+    {
+      show_condition = function() return true end,
+      condition = function() return true end,
+    }
+  ),
+  ls.s(
+    {
+      trig = "switch_case",
+      name = "Match-Case statement",
+      dscr = "Python Match Case statement with default case."
+    },
+    fmt([[
+      match {var}:
+        case "{one}":
+          ...{finally}
+        case _:
+          ...
+    ]], {
+      var = ls.i(1, { "var" }),
+      one = ls.i(2, { "one" }),
+      finally = ls.i(0)
+    }),
+
+    {
+      show_condition = function() return true end,
+      condition = function() return true end,
+    }
+  ),
+  ls.s(
+    {
+      trig = "ternary_condition",
+      name = "Python version of a ternay",
+      dscr = "Single line conditional, emulating ternarary"
+    },
+    fmt([[
+      {var} = "{foo}" if {True} else "{bar}"{finally}
+    ]], {
+      var = ls.i(1, { "var" }),
+      foo = ls.i(2, { "foo" }),
+      True = ls.i(3, { "True" }),
+      bar = ls.i(4, { "bar" }),
+      finally = ls.i(0)
+    }),
+
+    {
+      show_condition = function() return true end,
+      condition = function() return true end,
+    }
+  ),
+  ls.s(
+    {
+      trig = "list_comprehension",
+      name = "Python create list loop expression",
+      dscr = "Create new list from expression inside of list"
+    },
+    fmt([[
+      {var} = [a for a in x if a == True]
+    ]], {
+      var = ls.i(1, { "var" }),
+    }),
+    {
+      show_condition = function() return true end,
+      condition = function() return true end,
+    }
   )
 }
 
