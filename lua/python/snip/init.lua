@@ -40,6 +40,11 @@ local not_in_fn = {
   condition = not nodes.inside_function,
 }
 
+local always = {
+  show_condition = function() return true end,
+  condition = function() return true end,
+}
+
 local snippets = {
   -- Main
   ls.s(
@@ -110,10 +115,7 @@ local snippets = {
     ]], {
       ls.i(0)
     }),
-    {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+    always
   ),
 
   ls.s(
@@ -133,11 +135,7 @@ local snippets = {
       one = ls.i(2, { "one" }),
       finally = ls.i(0)
     }),
-
-    {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+    always
   ),
   ls.s(
     {
@@ -156,11 +154,7 @@ local snippets = {
       one = ls.i(2, { "one" }),
       finally = ls.i(0)
     }),
-
-    {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+    always
   ),
   ls.s(
     {
@@ -179,11 +173,7 @@ local snippets = {
       one = ls.i(2, { "one" }),
       finally = ls.i(0)
     }),
-
-    {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+    always
   ),
   ls.s(
     {
@@ -200,11 +190,7 @@ local snippets = {
       bar = ls.i(4, { "bar" }),
       finally = ls.i(0)
     }),
-
-    {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+    always
   ),
   ls.s(
     {
@@ -217,10 +203,171 @@ local snippets = {
     ]], {
       var = ls.i(1, { "var" }),
     }),
+    always
+  ),
+  ls.s(
     {
-      show_condition = function() return true end,
-      condition = function() return true end,
-    }
+      trig = "merge_dicts",
+      name = "Python create dict from 2 dicts using spread operation",
+      dscr = "Create dictionary from spread operator"
+    },
+    fmt([[
+      {var} = {{**{dict_1}, **{dict_2} }}
+    ]], {
+      var = ls.i(1, { "var" }),
+      dict_1 = ls.i(1, { "dict_1" }),
+      dict_2 = ls.i(1, { "dict_2" }),
+    }),
+    always
+  ),
+  ls.s(
+    {
+      trig = "with_open",
+      name = "python create open file io",
+      dscr = "create io object with open"
+    },
+    fmt([[
+      with open("/path", "{r}", encoding="utf-8") as f:
+        ...{finally}
+    ]], {
+      r = ls.i(1, { "r" }),
+      finally = ls.i(0),
+    }),
+    always
+  ),
+  ls.s(
+    {
+      trig = "for_with_index",
+      name = "Python For in loop with index",
+      dscr = "for in loop with index in python"
+    },
+    fmt([[
+      for i, {val} in enumerate({var}):
+        ...{finally}
+    ]], {
+      val = ls.i(1, { "val" }),
+      var = ls.i(2, { "var" }),
+      finally = ls.i(0),
+    }),
+    always
+  ),
+  ls.s(
+    {
+      trig = "colored_logs",
+      name = "Python colorized logger formatter",
+      dscr = "logging module formatter for colored logs"
+    },
+    fmt([[
+      import logging
+
+      class ColoredFormatter(logging.Formatter):
+          """Colorize log output in logger."""
+
+          grey = "\033[90m"
+          cyan = "\033[96m"
+          yellow = "\033[93m"
+          red = "\033[91m"
+          bold_red = "\033[1;31m"
+          reset = "\033[0m"
+          format = "%(levelname)s - %(message)s (%(filename)s:%(lineno)d)"  # type: ignore
+
+          FORMATS = {{
+              logging.DEBUG: grey + format + reset,  # type: ignore
+              logging.INFO: cyan + format + reset,  # type: ignore
+              logging.WARNING: yellow + format + reset,  # type: ignore
+              logging.ERROR: red + format + reset,  # type: ignore
+              logging.CRITICAL: bold_red + format + reset,  # type: ignore
+          }}
+
+          def format(self, record):
+              """Return log message using mapped formatter per level."""
+              log_fmt = self.FORMATS.get(record.levelno)
+              formatter = logging.Formatter(log_fmt)
+              return formatter.format(record)
+
+      log: logging.Logger = logging.getLogger(__file__)
+      log.setLevel(logging.INFO)
+      ch = logging.StreamHandler()
+      ch.setLevel(logging.INFO)
+      ch.setFormatter(ColoredFormatter())
+      log.addHandler(ch)
+    ]], {}, {}
+    ),
+    {},
+    not_in_fn
+  ),
+
+  ls.s(
+    {
+      trig = "requests_get",
+      name = "requests GET",
+      dscr = "requests Library get call",
+    },
+    fmt([[
+        resp = requests.get(url="{}", headers={{}}, params={{}})
+        resp.raise_for_status()
+      ]],
+      {
+        ls.i(1, "http://localhost")
+      },
+      {}
+    ),
+    always
+  ),
+  ls.s(
+    {
+      trig = "requests_post",
+      name = "requests POST",
+      dscr = "requests Library post call",
+    },
+    fmt([[
+        resp = requests.post(url="{}", headers={{}}, params={{}}, body={{
+
+        }})
+        resp.raise_for_status()
+      ]],
+      {
+        ls.i(1, "http://localhost")
+      },
+      {}
+    ),
+    always
+  ),
+  ls.s(
+    {
+      trig = "requests_put",
+      name = "requests PUT",
+      dscr = "requests Library put call",
+    },
+    fmt([[
+        resp = requests.put(url="{}", headers={{}}, params={{}}, body={{
+
+        }})
+        resp.raise_for_status()
+      ]],
+      {
+        ls.i(1, "http://localhost")
+      },
+      {}
+    ),
+    always
+  ),
+  ls.s(
+    {
+      trig = "requests_delete",
+      name = "requests DELETE",
+      dscr = "requests Library delete call",
+    },
+    fmt([[
+        resp = requests.delete(url="{}", headers={{}}, params={{}})
+        resp.raise_for_status()
+      ]],
+      {
+        ls.i(1, "http://localhost")
+      },
+      {}
+    ),
+    always
   )
 }
 

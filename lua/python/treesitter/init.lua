@@ -3,7 +3,7 @@ local nodes = require('python.treesitter.nodes')
 
 
 local M = {
-  query_func = '((function_definition))',
+  query_func = '(function_definition)',
 }
 
 return setmetatable(M, {

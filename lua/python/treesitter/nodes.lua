@@ -152,7 +152,7 @@ M.get_all_nodes = function(query, lang, defaults, bufnr, pos_row, pos_col, ntype
       if #dbg_txt > 100 then
         dbg_txt = string.sub(dbg_txt, 1, 100) .. '...'
       end
-      type = string.sub(path, 1, idx - 1) -- e.g. struct.name, type is struct
+      type = string.sub(path, 1, idx - 1)        -- e.g. struct.name, type is struct
       if type:find('type') and op == 'type' then -- type_declaration.type
         node_type = get_node_text(node, bufnr)
         -- ulog('type: ' .. type)
@@ -174,7 +174,7 @@ M.get_all_nodes = function(query, lang, defaults, bufnr, pos_row, pos_col, ntype
       elseif op == 'declaration' or op == 'clause' then
         declaration_node = node
         sRow, sCol, eRow, eCol =
-          ts_utils.get_vim_range({ vim.treesitter.get_node_range(node) }, bufnr)
+            ts_utils.get_vim_range({ vim.treesitter.get_node_range(node) }, bufnr)
       else
         -- ulog('unknown op: ' .. op)
       end
@@ -196,7 +196,7 @@ M.get_all_nodes = function(query, lang, defaults, bufnr, pos_row, pos_col, ntype
     if type_node ~= nil and ntype then
       -- ulog('type_only')
       sRow, sCol, eRow, eCol =
-        ts_utils.get_vim_range({ vim.treesitter.get_node_range(type_node) }, bufnr)
+          ts_utils.get_vim_range({ vim.treesitter.get_node_range(type_node) }, bufnr)
       table.insert(results, {
         type_node = type_node,
         dim = { s = { r = sRow, c = sCol }, e = { r = eRow, c = eCol } },
@@ -278,7 +278,7 @@ function M.inside_function()
   local expr = current_node
 
   while expr do
-    if expr:type() == 'function_definition' or expr:type() == 'method_declaration' then
+    if expr:type() == 'function_definition' then
       return true
     end
     expr = expr:parent()
