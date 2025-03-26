@@ -94,14 +94,14 @@ end
 ---@param callback function
 local function pip_install_with_venv(requirements_path, venv_dir, callback)
   local dir_name = vim.fs.dirname(requirements_path)
-  local venv_path = vim.fs.joinpath(dir_name, venv_dir)
   vim.notify(
-    'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_path,
+    'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_dir,
     vim.log.levels.INFO
   )
   vim.schedule(
     function()
-      local pip_path = venv_path .. '/' .. 'bin/pip'
+      local pip_path = venv_dir .. '/' .. 'bin/pip'
+      print(pip_path)
       local pip_cmd = { pip_path, 'install', '-r', requirements_path }
 
       if string.find(requirements_path, 'pyproject.toml$') then
