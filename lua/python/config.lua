@@ -28,7 +28,24 @@ local defaults = {
   command_setup_filetypes = { "python" },
 
   -- Load python.nvim python snippets
-  python_lua_snippets = false
+  python_lua_snippets = false,
+
+  -- Settings regarding ui handling
+  ui = {
+    -- Amount of time to pause closing of ui after a finished task
+    ui_close_timeout = 5000,
+    -- zindex of new ui elements.
+    zindex = 999,
+    -- Default ui style for interfaces created by python.nvim
+    ---@alias python_ui_default_style "'popup'|nil"
+    default_ui_style = "popup",
+    popup = {
+      demensions = {
+        width = "60",
+        height = "25"
+      }
+    }
+  }
 }
 
 ---@param opts? python.Config

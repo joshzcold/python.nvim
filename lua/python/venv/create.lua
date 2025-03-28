@@ -1,7 +1,17 @@
-local M = {}
+local empty_system_ui = {
+  ---@type NuiPopup|NuiPopup.constructor
+  ui = nil,
+  line_count = 0,
+}
+
+local M = {
+  system_ui = vim.deepcopy(empty_system_ui)
+}
 
 local config = require('python.config')
 local state = require("python.state")
+local NuiText = require("nui.text")
+local Popup = require("nui.popup")
 local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
 
 --- Set venv. Only set venv if its different than current.
@@ -23,6 +33,99 @@ local function python_set_venv(venv_path, venv_name)
       lsp.notify_workspace_did_change()
     end
   end
+end
+
+local function _deactivate_system_call_ui()
+  if M.system_ui.ui then
+    M.system_ui.ui:unmount()
+  end
+  M.system_ui = vim.deepcopy(empty_system_ui)
+end
+
+-- Turn off ui
+---@param timeout? integer time in milliseconds to close ui. Defaults to config option
+local function deactivate_system_call_ui(timeout)
+  if timeout == nil then
+    timeout = config.ui.ui_close_timeout
+  end
+
+  if timeout > 0 then
+    vim.defer_fn(function()
+      _deactivate_system_call_ui()
+    end, timeout)
+  else
+    _deactivate_system_call_ui()
+  end
+end
+
+--- Open a ui window to show the output of the command being called.
+local function activate_system_call_ui()
+  deactivate_system_call_ui(0)
+  local ui = nil
+  if config.ui.default_ui_style == "popup" then
+    ui = Popup({
+      border = 'single',
+      anchor = "NE",
+      relative = "win",
+      zindex = config.ui.zindex,
+      position = {
+        row = 1,
+        col = vim.api.nvim_win_get_width(0) - 3,
+      },
+      size = {
+        width = config.ui.popup.demensions.width,
+        height = config.ui.popup.demensions.height,
+      }
+    })
+  end
+  if ui then
+    -- mount/open the component
+    ui:mount()
+  end
+  M.system_ui.ui = ui
+end
+
+--- Open a ui w"indow to show the output of the command being called.
+---@param err string stderr data
+---@param data string stdout data
+---@param flush boolean clear ui text and replace with full output
+---@param callback function callback function with no arguments
+local function show_system_call_progress(err, data, flush, callback)
+  if not M.system_ui.ui then
+    return
+  end
+
+  local out = data
+  if not out then
+    out = ""
+  end
+  if err then
+    out = out .. err
+  end
+
+  vim.schedule(function()
+    out = out:gsub('\r', '')
+    local _, line_count = out:gsub('\n', '\n')
+    if flush then
+      M.system_ui.line_count = 0
+      pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.bufnr, 0, 0, 0, 0, {})
+    end
+
+    local row = M.system_ui.line_count
+    local increase = row + line_count
+
+    if not M.system_ui.ui.bufnr then
+      return
+    end
+    -- Don't throw errors if we can't set the text on the next line for something reason
+    pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.bufnr, row, 0, row, 0, vim.fn.split(out .. "\n", "\n"))
+    pcall(vim.api.nvim_win_set_cursor, M.system_ui.ui.winid, { row, 0 })
+
+    M.system_ui.line_count = increase
+    if callback then
+      callback()
+    end
+  end)
 end
 
 --- Search for file or directory until we either the top of the git repo or root
@@ -65,12 +168,14 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
     function(obj1)
       if obj1.code ~= 0 then
         vim.notify('python.nvim: ' .. vim.inspect(obj1.stderr), vim.log.levels.ERROR)
+        deactivate_system_call_ui(10000)
         return
       end
       vim.system(
         { 'pdm', 'sync' },
         {
-          cwd = dir_name
+          cwd = dir_name,
+          stdout = show_system_call_progress
         },
         function(obj2)
           vim.schedule(
@@ -79,11 +184,17 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
                 vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
                 return
               end
+              show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+                deactivate_system_call_ui()
+              end)
               callback()
             end
           )
         end
       )
+      vim.schedule(function()
+        activate_system_call_ui()
+      end)
     end
   )
 end
@@ -111,17 +222,24 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
         pip_cmd,
         {
           cwd = dir_name,
+          stdout = show_system_call_progress
         },
         function(obj2)
           vim.schedule(function()
             if obj2.code ~= 0 then
               vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
             else
+              show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+                deactivate_system_call_ui()
+              end)
               callback()
             end
           end)
         end
       )
+      vim.schedule(function()
+        activate_system_call_ui()
+      end)
     end
   )
 end

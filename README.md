@@ -22,8 +22,8 @@ return {
     dependencies = {
       { "mfussenegger/nvim-dap" },
       { "mfussenegger/nvim-dap-python" },
+      { "MunifTanjim/nui.nvim" },
       { "neovim/nvim-lspconfig" },
-
     },
     init = function()
       vim.api.nvim_set_keymap(
@@ -52,6 +52,7 @@ return {
       { "mfussenegger/nvim-dap" },
       { "mfussenegger/nvim-dap-python" },
       { "neovim/nvim-lspconfig" },
+      { "MunifTanjim/nui.nvim" },
       { "L3MON4D3/LuaSnip" }
     },
   }
