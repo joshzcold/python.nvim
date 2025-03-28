@@ -37,6 +37,27 @@ return {
 }
 ```
 
+**Include Snippets** by enabling `python_lua_snippets` and adding LuaSnip as a dependency
+
+```lua
+return {
+  ---@module 'python'
+  {
+    "joshzcold/python.nvim",
+    ---@type python.Config
+    opts = { ---@diagnostic disable-line: missing-fields`
+        python_lua_snippets = true
+    },
+    dependencies = {
+      { "mfussenegger/nvim-dap" },
+      { "mfussenegger/nvim-dap-python" },
+      { "neovim/nvim-lspconfig" },
+      { "L3MON4D3/LuaSnip" }
+    },
+  }
+}
+```
+
 </details>
 
 ## Features
@@ -51,18 +72,18 @@ return {
 
 - [ ] Easier setup of python debugging
 
-  - [X] Automatically install debugpy into venv
-  - [ ] Interactively create a DAP config for a program, saving configuration.
+  - [x] Automatically install debugpy into venv
+  - [X] Interactively create a DAP config for a program, saving configuration.
 
 - [ ] Utility features
 
-  - [X] Function to swap type checking mode for pyright, basedpyright
-  - [X] Function to launch test method, class, etc. in DAP
+  - [x] Function to swap type checking mode for pyright, basedpyright
+  - [x] Function to launch test method, class, etc. in DAP
 
-- [ ] Library of snippets
+- [X] Python Snippets through luasnip
 
--  [ ] Treesitter integration
-    - [ ] Library of functions utilizing treesitter
+- [ ] Treesitter integration
+  - [ ] Functions utilizing treesitter for helpful code actions
 
 ## Supported python package managers
 

@@ -28,7 +28,7 @@ local defaults = {
   command_setup_filetypes = { "python" },
 
   -- Load python.nvim python snippets
-  python_snippets = true
+  python_lua_snippets = false
 }
 
 ---@param opts? python.Config

@@ -372,7 +372,7 @@ local snippets = {
 }
 
 function M.load_snippets()
-  if not config.python_snippets then
+  if not config.python_lua_snippets then
     return
   end
   ls.add_snippets("python", snippets)
