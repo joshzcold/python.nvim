@@ -4,9 +4,9 @@ local nodes = require('python.treesitter.nodes')
 local ts = require('python.treesitter')
 
 function M.load_commands()
-  vim.api.nvim_create_user_command("PythonDictToTypedDict", function()
-    print(nodes.inside_function())
-  end, {})
+  -- vim.api.nvim_create_user_command("PythonDictToTypedDict", function()
+  --   print(nodes.inside_function())
+  -- end, {})
 
   vim.api.nvim_create_user_command("PythonTestTSQueries", function()
     ts.test_ts_queries()

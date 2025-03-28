@@ -3,13 +3,15 @@
 Python Tools for Neovim
 
 > [!WARNING]
-> This plugin is currently in progress and is subject to bugs
+> This plugin is currently in alpha status and can be subject to breaking changes
 > Please file issues when found and feel free to contribute
 
 ## Installation
 
 <details>
 <summary>lazy.nvim</summary>
+
+**Example Config**
 
 ```lua
 return {
@@ -71,20 +73,38 @@ return {
 
 - [x] Keep track of envs/pythons per project in state
 
-- [ ] Easier setup of python debugging
+- [x] Easier setup of python debugging
 
   - [x] Automatically install debugpy into venv
-  - [X] Interactively create a DAP config for a program, saving configuration.
+  - [x] Interactively create a DAP config for a program, saving configuration.
 
-- [ ] Utility features
+- [x] Utility features
 
   - [x] Function to swap type checking mode for pyright, basedpyright
   - [x] Function to launch test method, class, etc. in DAP
 
-- [X] Python Snippets through luasnip
+- [x] Optional Python Snippets through luasnip
 
 - [ ] Treesitter integration
   - [ ] Functions utilizing treesitter for helpful code actions
+
+## Commands
+
+## Main Commands
+
+| Command              | Functionality                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------ |
+| `:PythonVEnvInstall` | Create a venv and install dependencies if a supported python package format is found |
+| `:PythonDap`         | Create and save a new Dap configuration                                              |
+
+## Advanced Commands
+
+| Command                      | Functionality                                                  |
+| ---------------------------- | -------------------------------------------------------------- |
+| `:PythonVEnvDeleteSelect`    | Select a venv to delete from `python.nvim` state               |
+| `:PythonVEnvDelete`          | Delete current selected venv in project in `python.nvim` state |
+| `:PythonDapPytestTestClass`  | Run `pytest` in dap against this test class under cursor       |
+| `:PythonDapPytestTestMethod` | Run `pytest` in dap against this test method under cursor      |
 
 ## Supported python package managers
 
@@ -99,3 +119,5 @@ return {
 
 [swenv,nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting venvs.
 Use this plugin if you want a more simple venv management plugin for your workflow.
+
+[go.nvim](https://github.com/ray-x/go.nvim) for inspiration.
