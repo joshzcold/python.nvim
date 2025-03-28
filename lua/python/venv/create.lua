@@ -10,7 +10,6 @@ local M = {
 
 local config = require('python.config')
 local state = require("python.state")
-local NuiText = require("nui.text")
 local Popup = require("nui.popup")
 local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
 
