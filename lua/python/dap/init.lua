@@ -45,6 +45,9 @@ local function create_dap_config(cwd, venv, python_state)
   vim.ui.select({ "file", "file:args", "program:args" }, {
     prompt = "python.nvim: Select new dap style configuration"
   }, function(choice)
+    if not choice then
+        return
+    end
     local config = {
       type = 'python',
       request = 'launch',
@@ -96,9 +99,9 @@ function M.load_commands()
           }, function(choice)
             if choice == "Create New" then
               create_dap_config(cwd, venv, python_state)
-              return
+            elseif choice == "Yes" then
+              dap.run(python_state.dap[cwd])
             end
-            dap.run(python_state.dap[cwd])
           end)
         end
       end)
