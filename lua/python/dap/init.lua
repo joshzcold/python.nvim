@@ -91,7 +91,7 @@ function M.load_commands()
         if python_state.dap[cwd] == nil then
             create_dap_config(cwd, venv, python_state)
         else
-          vim.ui.select({ "Yes", "No" }, {
+          vim.ui.select({ "Yes", "Create New" }, {
             prompt = "Use this config?: " .. vim.inspect(python_state.dap[cwd])
           }, function(choice)
             if choice == "Create New" then
