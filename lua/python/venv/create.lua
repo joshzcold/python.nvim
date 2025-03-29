@@ -152,6 +152,42 @@ local function search_up(dir_or_file)
   return found
 end
 
+--- Run uv sync at lock file directory. Set env path when done.
+---@param uv_lock_path string full path to pdm lock file
+---@param venv_dir string full path to pdm lock file
+---@param callback function
+local function uv_sync(uv_lock_path, venv_dir, callback)
+  vim.notify('python.nvim: starting uv sync at: ' .. uv_lock_path, vim.log.levels.INFO)
+  local dir_name = vim.fs.dirname(uv_lock_path)
+  vim.system(
+    { 'uv', 'sync' },
+    {
+      cwd = dir_name,
+      stdout = show_system_call_progress,
+      env = {
+        VIRTUAL_ENV = venv_dir
+      }
+    },
+    function(obj)
+      vim.schedule(
+        function()
+          if obj.code ~= 0 then
+            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+            return
+          end
+          show_system_call_progress(obj.stderr, obj.stdout, true, function()
+            deactivate_system_call_ui()
+          end)
+          callback()
+        end
+      )
+    end
+  )
+  vim.schedule(function()
+    activate_system_call_ui()
+  end)
+end
+
 --- Run pdm sync at lock file directory. Set env path when done.
 ---@param pdm_lock_path string full path to pdm lock file
 ---@param venv_dir string full path to pdm lock file
@@ -256,10 +292,13 @@ local check_paths = {
   ['pdm.lock'] = function(install_file, venv_dir, callback)
     pdm_sync(install_file, venv_dir, callback)
   end,
+  ['uv.lock'] = function(install_file, venv_dir, callback)
+    uv_sync(install_file, venv_dir, callback)
+  end,
 }
 
 local check_paths_ordered_keys = {
-  "pdm.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
+  "uv.lock", "pdm.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
 }
 
 ---@return table<string> list of potential python interpreters to use
