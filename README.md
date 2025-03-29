@@ -112,6 +112,7 @@ return {
 
 | Manager | Install File         | Install Method   |
 | ------- | -------------------- | ---------------- |
+| uv      | uv.lock              | `uv sync`        |
 | pdm     | pdm.lock             | `pdm sync`       |
 | pip     | pyproject.toml       | `pip install .`  |
 | pip     | dev-requirements.txt | `pip install -r` |

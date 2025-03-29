@@ -27,6 +27,8 @@ function M.setup(opts)
       end
 
       lsp.load_commands()
+      -- TODO: should I put this in an autocmd that only runs once instead of for
+      -- each lsp server?
       create.detect_venv(true)
     end,
   })
