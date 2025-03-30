@@ -120,7 +120,7 @@ return {
 
 ## Special Thanks
 
-[swenv,nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting venvs.
+[swenv.nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting virtual envs.
 Use this plugin if you want a more simple venv management plugin for your workflow.
 
 [go.nvim](https://github.com/ray-x/go.nvim) for inspiration.
