@@ -6,5 +6,6 @@ description = "Lovely Spam! Wonderful Spam!"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-  "pytest"
+  "pytest",
+  "requests"
 ]

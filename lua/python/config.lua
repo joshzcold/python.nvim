@@ -45,6 +45,10 @@ local defaults = {
         height = "25"
       }
     }
+  },
+
+  test = {
+    test_runner = "pytest"
   }
 }
 

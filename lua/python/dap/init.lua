@@ -17,8 +17,8 @@ end
 
 
 --- Read venv with debug py and launch callback
----@param callback function
-local function prepare_debugpy(callback)
+---@param callback? function
+function M.prepare_debugpy(callback)
   local venv = get_venv()
   if not venv then
     return
@@ -85,7 +85,7 @@ end
 function M.load_commands()
   local dap = require("dap")
   vim.api.nvim_create_user_command("PythonDap", function()
-    prepare_debugpy(function(venv)
+    M.prepare_debugpy(function(venv)
       vim.schedule(function()
         local dap_python = require("dap-python")
         dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
@@ -108,31 +108,6 @@ function M.load_commands()
     end)
   end, {
     desc = "python.nvim: create or list dap configure"
-  })
-
-  vim.api.nvim_create_user_command("PythonDapPytestTestMethod", function()
-    prepare_debugpy(function(venv)
-      vim.schedule(function()
-        local dap_python = require("dap-python")
-        dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
-        dap_python.test_runner = "pytest"
-        dap_python.test_method()
-      end)
-    end)
-  end, {
-    desc = "python.nvim: run test method with python dap"
-  })
-  vim.api.nvim_create_user_command("PythonDapPytestTestClass", function()
-    prepare_debugpy(function(venv)
-      vim.schedule(function()
-        local dap_python = require("dap-python")
-        dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
-        dap_python.test_runner = "pytest"
-        dap_python.test_class()
-      end)
-    end)
-  end, {
-    desc = "python.nvim: run test class with python dap"
   })
 end
 

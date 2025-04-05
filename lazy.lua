@@ -5,6 +5,8 @@ return {
     { "mfussenegger/nvim-dap-python" },
     { "neovim/nvim-lspconfig" },
     { "MunifTanjim/nui.nvim" },
-    { "L3MON4D3/LuaSnip" }
+    { "L3MON4D3/LuaSnip" },
+    { "nvim-neotest/neotest" },
+    { "nvim-neotest/neotest-python" },
   }
 }
