@@ -52,9 +52,8 @@ return {
 
 </details>
 
-<summary>Configuration Options</summary>
-
 <details>
+<summary>Configuration Options</summary>
 
 ```lua
 return {
@@ -183,4 +182,7 @@ return {
 Use this plugin if you want a more simple venv management plugin for your workflow.
 
 [go.nvim](https://github.com/ray-x/go.nvim) for inspiration.
+
+```
+
 ```
