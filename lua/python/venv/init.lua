@@ -42,6 +42,7 @@ function M.set_venv_path(venv)
   end
 end
 
+---@return VEnv | nil
 function M.current_venv()
   return current_venv
 end

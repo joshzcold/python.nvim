@@ -48,6 +48,14 @@ function M.setup(opts)
       snip.load_snippets()
     end,
   })
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = "test_*.py",
+    group = id,
+    callback = function()
+      local test = require("python.test")
+      test.load_commands()
+    end,
+  })
 end
 
 return setmetatable(M, {

@@ -52,6 +52,72 @@ return {
 
 </details>
 
+<summary>Configuration Options</summary>
+
+<details>
+
+```lua
+return {
+  ---@module 'python'
+  {
+    "joshzcold/python.nvim",
+    ---@type python.Config
+    opts = { ---@diagnostic disable-line: missing-fields`
+        -- Should return a list of tables with a `name` and a `path` entry each.
+        -- Gets the argument `venvs_path` set below.
+        -- By default just lists the entries in `venvs_path`.
+        ---@return VEnv[]
+        get_venvs = function(venvs_path)
+            return require('python.venv').get_venvs(venvs_path)
+        end,
+        -- Path for venvs picker
+        venvs_path = vim.fn.expand('~/.virtualenvs'),
+        -- Something to do after setting an environment
+        post_set_venv = nil,
+        -- base path for creating new venvs
+        auto_create_venv_path = function(parent_dir)
+            return vim.fs.joinpath(parent_dir, '.venv')
+        end,
+        -- Patterns for autocmd LspAttach that trigger the auto venv logic
+        -- Add onto this list if you depend on venvs for other file types
+        -- like .yaml, .yml for ansible
+        auto_venv_lsp_attach_patterns = { "*.py" },
+
+        -- Filetypes to activate commands for python.nvim
+        command_setup_filetypes = { "python" },
+
+        -- Load python.nvim python snippets
+        python_lua_snippets = false,
+
+        -- Settings regarding ui handling
+        ui = {
+            -- Amount of time to pause closing of ui after a finished task
+            ui_close_timeout = 5000,
+            -- zindex of new ui elements.
+            zindex = 999,
+            -- Default ui style for interfaces created by python.nvim
+            ---@alias python_ui_default_style "'popup'|nil"
+            default_ui_style = "popup",
+            popup = {
+            demensions = {
+                width = "60",
+                height = "25"
+            }
+            }
+        },
+
+        -- Tell neotest-python which test runner to use
+        test = {
+            test_runner = "pytest"
+        }
+    }
+  }
+}
+
+```
+
+</details>
+
 ## Features
 
 - [x] Switch between virtual envs interactively
@@ -74,6 +140,8 @@ return {
 
 - [x] Optional Python Snippets through luasnip
 
+- [x] Integration with neotest. Commands to easily run tests through venv setup with `python.nvim`
+
 - [ ] Treesitter integration
   - [ ] Functions utilizing treesitter for helpful code actions
 
@@ -85,15 +153,19 @@ return {
 | -------------------- | ------------------------------------------------------------------------------------ |
 | `:PythonVEnvInstall` | Create a venv and install dependencies if a supported python package format is found |
 | `:PythonDap`         | Create and save a new Dap configuration                                              |
+| `:PythonTest`        | Run Suite of tests with `neotest`                                                    |
+| `:PythonTestMethod`  | Run test function/method with `neotest`                                              |
+| `:PythonTestFile`    | Run test file with `neotest`                                                         |
 
 ## Advanced Commands
 
-| Command                      | Functionality                                                  |
-| ---------------------------- | -------------------------------------------------------------- |
-| `:PythonVEnvDeleteSelect`    | Select a venv to delete from `python.nvim` state               |
-| `:PythonVEnvDelete`          | Delete current selected venv in project in `python.nvim` state |
-| `:PythonDapPytestTestClass`  | Run `pytest` in dap against this test class under cursor       |
-| `:PythonDapPytestTestMethod` | Run `pytest` in dap against this test method under cursor      |
+| Command                   | Functionality                                                           |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `:PythonVEnvDeleteSelect` | Select a venv to delete from `python.nvim` state                        |
+| `:PythonVEnvDelete`       | Delete current selected venv in project in `python.nvim` state          |
+| `:PythonDebugTest`        | Run Suite of tests with `neotest` in `dap` mode with `dap-python`       |
+| `:PythonDebugTestMethod`  | Run test function/method with `neotest` in `dap` mode with `dap-python` |
+| `:PythonDebugTestFile`    | Run test file with `neotest` in `dap` mode with `dap-python`            |
 
 ## Supported python package managers
 
@@ -111,3 +183,4 @@ return {
 Use this plugin if you want a more simple venv management plugin for your workflow.
 
 [go.nvim](https://github.com/ray-x/go.nvim) for inspiration.
+```
