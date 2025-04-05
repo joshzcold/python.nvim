@@ -263,6 +263,7 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
           vim.schedule(function()
             if obj2.code ~= 0 then
               vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+              deactivate_system_call_ui(10000)
             else
               show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
                 deactivate_system_call_ui()

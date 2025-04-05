@@ -23,12 +23,6 @@ return {
     ---@type python.Config
     opts = { ---@diagnostic disable-line: missing-fields`
     },
-    dependencies = {
-      { "mfussenegger/nvim-dap" },
-      { "mfussenegger/nvim-dap-python" },
-      { "MunifTanjim/nui.nvim" },
-      { "neovim/nvim-lspconfig" },
-    },
     init = function()
       vim.api.nvim_set_keymap(
         "n",
@@ -51,13 +45,6 @@ return {
     ---@type python.Config
     opts = { ---@diagnostic disable-line: missing-fields`
         python_lua_snippets = true
-    },
-    dependencies = {
-      { "mfussenegger/nvim-dap" },
-      { "mfussenegger/nvim-dap-python" },
-      { "neovim/nvim-lspconfig" },
-      { "MunifTanjim/nui.nvim" },
-      { "L3MON4D3/LuaSnip" }
     },
   }
 }
