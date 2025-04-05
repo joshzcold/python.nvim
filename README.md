@@ -61,7 +61,7 @@ return {
   {
     "joshzcold/python.nvim",
     ---@type python.Config
-    opts = { ---@diagnostic disable-line: missing-fields`
+    opts = {
         -- Should return a list of tables with a `name` and a `path` entry each.
         -- Gets the argument `venvs_path` set below.
         -- By default just lists the entries in `venvs_path`.
@@ -88,6 +88,27 @@ return {
         -- Load python.nvim python snippets
         python_lua_snippets = false,
 
+        -- Load python keymaps. Everything starting with <leader>p...
+        keymaps = {
+            -- following nvim_set_keymap() mode, lhs, rhs, opts
+            mappings = {
+            ['<leader>pv'] = { "n", "<cmd>PythonVEnvPick<cr>", { desc = "python.nvim: pick venv" } },
+            ['<leader>pi'] = { "n", "<cmd>PythonVEnvInstall<cr>", { desc = "python.nvim: python venv install" } },
+            ['<leader>pd'] = { "n", "<cmd>PythonDap<cr>", { desc = "python.nvim: python run debug program" } },
+
+            -- Test Actions
+            ['<leader>ptt'] = { "n", "<cmd>PythonTest<cr>", { desc = "python.nvim: python run test suite" } },
+            ['<leader>ptm'] = { "n", "<cmd>PythonTestMethod<cr>", { desc = "python.nvim: python run test method" } },
+            ['<leader>ptf'] = { "n", "<cmd>PythonTestFile<cr>", { desc = "python.nvim: python run test file" } },
+            ['<leader>ptdd'] = { "n", "<cmd>PythonDebugTest<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+            ['<leader>ptdm'] = { "n", "<cmd>PythonDebugTestMethod<cr>", { desc = "python.nvim: run test method in debug mode." } },
+            ['<leader>ptdf'] = { "n", "<cmd>PythonDebugTestFile<cr>", { desc = "python.nvim: run test file in debug mode." } },
+
+            -- VEnv Actions
+            ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
+            ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
+            }
+        },
         -- Settings regarding ui handling
         ui = {
             -- Amount of time to pause closing of ui after a finished task

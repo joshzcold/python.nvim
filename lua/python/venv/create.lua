@@ -247,7 +247,6 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
   vim.schedule(
     function()
       local pip_path = venv_dir .. '/' .. 'bin/pip'
-      print(pip_path)
       local pip_cmd = { pip_path, 'install', '-r', requirements_path }
 
       if string.find(requirements_path, 'pyproject.toml$') then

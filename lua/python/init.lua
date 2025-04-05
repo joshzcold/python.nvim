@@ -42,10 +42,12 @@ function M.setup(opts)
       local dap = require("python.dap")
       local snip = require("python.snip")
       local ts = require("python.treesitter.commands")
+      local keymap = require("python.keymap")
       commands.load_commands()
       dap.load_commands()
       ts.load_commands()
       snip.load_snippets()
+      keymap.load_keymaps()
     end,
   })
   vim.api.nvim_create_autocmd({ "BufEnter" }, {
