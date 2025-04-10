@@ -51,7 +51,7 @@ M.get_nodes = function(query, lang, defaults, bufnr)
     return parse(lang, query)
   end)
   if not success then
-    vim.notify('treesitter parse failed, make sure treesitter installed and setup correctly', vim.log.levels.WARN)
+    vim.notify_once('treesitter parse failed, make sure treesitter installed and setup correctly', vim.log.levels.WARN)
     return nil
   end
 
@@ -221,7 +221,7 @@ M.nodes_in_buf = function(query, default, bufnr, row, col)
   end
   local ns = M.get_all_nodes(query, ft, default, bufnr, row, col, true)
   if ns == nil then
-    -- vim.notify('Unable to find any nodes.', vim.log.levels.DEBUG)
+    -- vim.notify_once('Unable to find any nodes.', vim.log.levels.DEBUG)
     -- ulog('Unable to find any nodes. place your cursor on a go symbol and try again')
     return nil
   end
@@ -239,7 +239,7 @@ M.nodes_at_cursor = function(query, default, bufnr, ntype)
   end
   local ns = M.get_all_nodes(query, ft, default, bufnr, row, col, ntype)
   if ns == nil then
-    vim.notify(
+    vim.notify_once(
       'Unable to find any nodes. place your cursor on a go symbol and try again',
       vim.log.levels.DEBUG
     )
@@ -258,7 +258,7 @@ M.nodes_at_cursor = function(query, default, bufnr, ntype)
   -- ulog(row, col, vim.inspect(nodes_at_cursor):sub(1, 100))
   if nodes_at_cursor == nil or #nodes_at_cursor == 0 then
     -- if _GO_NVIM_CFG.verbose then
-    --   vim.notify(
+    --   vim.notify_once(
     --     'Unable to find any nodes at pos. ' .. tostring(row) .. ':' .. tostring(col),
     --     vim.log.levels.DEBUG
     --   )

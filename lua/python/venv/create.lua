@@ -28,7 +28,7 @@ local function python_set_venv(venv_path, venv_name)
     end
     if vim.fs.basename(venv_path) ~= current_venv_name then
       python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
-      vim.notify("python.nvim: set venv at: " .. venv_path)
+      vim.notify_once("python.nvim: set venv at: " .. venv_path)
       lsp.notify_workspace_did_change()
     end
   end
@@ -157,7 +157,7 @@ end
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 local function uv_sync(uv_lock_path, venv_dir, callback)
-  vim.notify('python.nvim: starting uv sync at: ' .. uv_lock_path, vim.log.levels.INFO)
+  vim.notify_once('python.nvim: starting uv sync at: ' .. uv_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(uv_lock_path)
   vim.system(
     { 'uv', 'sync' },
@@ -172,7 +172,7 @@ local function uv_sync(uv_lock_path, venv_dir, callback)
       vim.schedule(
         function()
           if obj.code ~= 0 then
-            vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+            vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
             return
           end
           show_system_call_progress(obj.stderr, obj.stdout, true, function()
@@ -193,7 +193,7 @@ end
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 local function pdm_sync(pdm_lock_path, venv_dir, callback)
-  vim.notify('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
+  vim.notify_once('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
   vim.system(
     { 'pdm', 'use', '-f', venv_dir },
@@ -202,7 +202,7 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
     },
     function(obj1)
       if obj1.code ~= 0 then
-        vim.notify('python.nvim: ' .. vim.inspect(obj1.stderr), vim.log.levels.ERROR)
+        vim.notify_once('python.nvim: ' .. vim.inspect(obj1.stderr), vim.log.levels.ERROR)
         deactivate_system_call_ui(10000)
         return
       end
@@ -216,7 +216,7 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
           vim.schedule(
             function()
               if obj2.code ~= 0 then
-                vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
                 return
               end
               show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
@@ -240,7 +240,7 @@ end
 ---@param callback function
 local function pip_install_with_venv(requirements_path, venv_dir, callback)
   local dir_name = vim.fs.dirname(requirements_path)
-  vim.notify(
+  vim.notify_once(
     'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_dir,
     vim.log.levels.INFO
   )
@@ -261,7 +261,7 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
         function(obj2)
           vim.schedule(function()
             if obj2.code ~= 0 then
-              vim.notify('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+              vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
               deactivate_system_call_ui(10000)
             else
               show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
@@ -318,7 +318,8 @@ local function python_interpreters()
     end
   end
   if not interpreters then
-    vim.notify("python.nvim: Warning could not detect python interpreters. Defaulting to python3", vim.log.levels.WARN)
+    vim.notify_once("python.nvim: Warning could not detect python interpreters. Defaulting to python3",
+      vim.log.levels.WARN)
     interpreters = { "python3" }
   end
   return interpreters
@@ -329,13 +330,13 @@ end
 ---@param python_interpreter string path to python executable to use
 ---@param callback function
 local function create_venv_with_python(venv_path, python_interpreter, callback)
-  vim.notify('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
+  vim.notify_once('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
   vim.system(
     { python_interpreter, '-m', 'venv', venv_path },
     {},
     function(obj)
       if obj.code ~= 0 then
-        vim.notify('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
+        vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
         return
       end
       callback()
@@ -346,7 +347,7 @@ local function set_venv_state()
   local detect = M.detect_venv(false)
 
   if detect == nil then
-    vim.notify(
+    vim.notify_once(
       "python.nvim: Could not find a python dependency file for this cwd",
       vim.log.levels.WARN)
     return
@@ -371,7 +372,7 @@ local function set_venv_state()
       vim.ui.input({ prompt = "Input new venv path", default = default_input }, function(venv_path_user_input)
         local wanted_dir = vim.fs.dirname(venv_path_user_input)
         if vim.fn.isdirectory(wanted_dir) == 0 then
-          vim.notify(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
+          vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
             vim.log.levels.ERROR)
           return
         end
@@ -413,7 +414,31 @@ end
 ---Remove venv from state by key
 ---@param venv_key any
 local function delete_venv_from_state(venv_key)
+  if not venv_key then
+    vim.notify_once(string.format("python.nvim: Could not delete venv from state. venv_key was nil"),
+      vim.log.levels.ERROR)
+    return
+  end
+  local lsp = require("python.lsp")
+  local python_venv = require('python.venv')
+
+
   local python_state = state.State()
+  if not python_state.venvs[venv_key] then
+    vim.notify_once(
+      string.format("python.nvim: Could not delete venv from state. %s was not found in state.venv", venv_key),
+      vim.log.levels.ERROR)
+    return
+  end
+  local old_venv_path = python_state.venvs[venv_key].venv_path
+  if vim.fn.isdirectory(old_venv_path) then
+    vim.fn.delete(old_venv_path, "rf")
+  end
+
+  python_venv.set_venv_path(nil)
+  lsp.notify_workspace_did_change()
+  vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
+
   for k, v in ipairs(python_state.venvs) do
     if v == venv_key then
       table.remove(python_state.venvs, k)
@@ -434,9 +459,7 @@ local function delete_venv_from_selection()
   vim.ui.select(keys, {
     prompt = "Delete venv project from state"
   }, function(choice)
-    python_state.venvs[choice] = nil
-    state.save(python_state)
-    vim.notify(string.format("python.nvim: Removed '%s' from state.", choice))
+    delete_venv_from_state(choice)
   end)
 end
 
@@ -446,7 +469,12 @@ function M.delete_venv(select)
   if select then
     delete_venv_from_selection()
   else
-    delete_venv_from_state()
+    local python_venv = require('python.venv')
+    local current_venv = python_venv.current_venv()
+    if not current_venv then
+      vim.notify_once("python.nvim: Current venv is nil. Cant continue", vim.log.levels.WARN)
+    end
+    delete_venv_from_state(vim.fs.dirname(current_venv.path))
   end
 end
 
@@ -467,7 +495,8 @@ function M.user_set_venv_in_state_confirmation(venv_path)
         install_file = "unknown"
       }
       state.save(python_state)
-      vim.notify(string.format("python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it.",
+      vim.notify_once(string.format(
+        "python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it.",
         venv_path, cwd))
     end
   end)
@@ -504,7 +533,7 @@ function M.detect_venv(notify)
         end
       end
       if notify then
-        vim.notify(
+        vim.notify_once(
           string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", parent_dir),
           vim.log.levels.WARN)
       end

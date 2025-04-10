@@ -9,7 +9,7 @@ local state = require("python.state")
 local function get_venv()
   local venv = require('python.venv').current_venv()
   if not venv then
-    vim.notify("python.nvim: Need a venv to do DAP actions", vim.log.levels.WARN)
+    vim.notify_once("python.nvim: Need a venv to do DAP actions", vim.log.levels.WARN)
     return
   end
   return venv
@@ -27,10 +27,10 @@ function M.prepare_debugpy(callback)
     { vim.fs.joinpath(venv.path, "bin", "pip"), "install", "debugpy" },
     {}, function(obj)
       if obj.code ~= 0 then
-        vim.notify('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+        vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
         return
       end
-      vim.notify(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
+      vim.notify_once(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
       callback(venv)
     end
   )

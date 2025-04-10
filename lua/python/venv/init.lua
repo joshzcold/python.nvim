@@ -24,8 +24,12 @@ local update_PATH = function(path)
   vim.fn.setenv('PATH', vim.fs.joinpath(path, dir .. sep .. ORIGINAL_PATH))
 end
 
----@param venv VEnv
+---@param venv VEnv | nil
 function M.set_venv_path(venv)
+  if venv == nil then
+    current_venv = venv
+    return
+  end
   local config = require("python.config")
   if venv.source == 'conda' or venv.source == 'micromamba' then
     vim.fn.setenv('CONDA_PREFIX', venv.path)
