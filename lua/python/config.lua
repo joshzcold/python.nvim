@@ -36,7 +36,7 @@ local defaults = {
     "f-strings" -- When inserting {}, put in an f-string
   },
   -- Adjust when enabled_text_actions is triggered
-  enabled_text_actions_autocmd_events = { "InsertLeave", "TextChanged" },
+  enabled_text_actions_autocmd_events = { "InsertLeave" },
 
   -- Load python keymaps. Everything starting with <leader>p...
   keymaps = {
