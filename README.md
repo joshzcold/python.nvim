@@ -86,7 +86,7 @@ return {
             "f-strings" -- When inserting {}, put in an f-string
         },
         -- Adjust when enabled_text_actions is triggered
-        enabled_text_actions_autocmd_events = { "InsertLeave", "TextChanged" },
+        enabled_text_actions_autocmd_events = { "InsertLeave" },
 
         -- Load python keymaps. Everything starting with <leader>p...
         keymaps = {
@@ -107,6 +107,9 @@ return {
             -- VEnv Actions
             ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
             ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
+
+            -- Language Actions
+            ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
             }
         },
         -- Settings regarding ui handling
@@ -159,10 +162,12 @@ return {
   - [x] Function to launch test method, class, etc. in DAP
 
 - [x] Optional Python Snippets through luasnip
-    > Enable with `python_lua_snippets` in config
+
+  > Enable with `python_lua_snippets` in config
 
 - [x] Integration with neotest. Commands to easily run tests through venv setup with `python.nvim`
-    > See `test` in config and `:PythonTest*` commands
+
+  > See `test` in config and `:PythonTest*` commands
 
 - [ ] Treesitter integration
   - [ ] Functions utilizing treesitter for helpful code actions
