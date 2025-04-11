@@ -3,16 +3,6 @@ local M = {}
 local nodes = require('python.treesitter.nodes')
 local ts = require('python.treesitter')
 
-function M.load_commands()
-	-- vim.api.nvim_create_user_command("PythonDictToTypedDict", function()
-	--   print(nodes.inside_function())
-	-- end, {})
-
-	vim.api.nvim_create_user_command("PythonTestTSQueries", function()
-		ts.test_ts_queries()
-	end, {})
-end
-
 ---get node at cursor and validate that the user has at least nvim 0.9
 ---@return nil|TSNode nil if no node or nvim version too old
 local function getNodeAtCursor()
@@ -34,6 +24,63 @@ local function replaceNodeText(node, replacementText)
 	local lines = vim.split(replacementText, "\n")
 	pcall(vim.cmd.undojoin) -- make undos ignore the next change, see #8
 	vim.api.nvim_buf_set_text(0, startRow, startCol, endRow, endCol, lines)
+end
+
+local function ts_toggle_enumerate()
+	local node = getNodeAtCursor()
+	if not node then return end
+
+	local listNode
+	if node:type() == "for_statement" then
+		listNode = node
+	elseif node:type() == "indentifier" or node:type() == "pattern_list" then
+		listNode = node:parent()
+	else
+		vim.notify_once("python.nvim: Treesitter, not on a python list", vim.log.levels.WARN)
+		return
+	end
+
+	if not listNode then return end
+	local left = listNode:field("left")[1]
+	local right = listNode:field("right")[1]
+	if not left or not right then
+		return
+	end
+	local left_text = getNodeText(left)
+	local right_text = getNodeText(right)
+	if not left_text or not right_text then
+		return
+	end
+
+	local left_items = vim.split(left_text, ",", { trimempty = true })
+	local is_enumerate = string.match(right_text, "^enumerate.+")
+
+	if #left_items == 1 and not is_enumerate then
+		left_text = ("idx, %s"):format(left_text)
+		right_text = ("enumerate(%s)"):format(right_text)
+
+		replaceNodeText(right, right_text)
+		replaceNodeText(left, left_text)
+	elseif #left_items > 1 and is_enumerate then
+		local right_text_match = string.match(right_text, [[^enumerate%W(.+)%W]])
+		right_text = right_text_match
+		print(right_text)
+		replaceNodeText(right, right_text)
+
+		left_text = left_items[2]
+		left_text = left_text:gsub("%s+", "")
+		replaceNodeText(left, left_text)
+	end
+end
+
+function M.load_commands()
+	vim.api.nvim_create_user_command("PythonTestTSQueries", function()
+		ts.test_ts_queries()
+	end, {})
+
+	vim.api.nvim_create_user_command("PythonTSToggleEnumerate", function()
+		ts_toggle_enumerate()
+	end, {})
 end
 
 function M.pythonFStr()

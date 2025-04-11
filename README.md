@@ -167,34 +167,40 @@ return {
   - [x] Function to launch test method, class, etc. in DAP
 
 - [x] Optional Python Snippets through luasnip
+    > Enable with `python_lua_snippets` in config
 
 - [x] Integration with neotest. Commands to easily run tests through venv setup with `python.nvim`
+    > See `test` in config and `:PythonTest*` commands
 
 - [ ] Treesitter integration
   - [ ] Functions utilizing treesitter for helpful code actions
-    - [X] Auto insert fstrings while typing `{}`
+    - [x] Auto insert fstrings while typing `{}`
+      > See `enabled_text_actions` in config
+    - [x] Toggle a list into an `enumerate()` list with index
+      > Try `:PythonTSToggleEnumerate` on a `for x in list` list
 
 ## Commands
 
 ## Main Commands
 
-| Command              | Functionality                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `:PythonVEnvInstall` | Create a venv and install dependencies if a supported python package format is found |
-| `:PythonDap`         | Create and save a new Dap configuration                                              |
-| `:PythonTest`        | Run Suite of tests with `neotest`                                                    |
-| `:PythonTestMethod`  | Run test function/method with `neotest`                                              |
-| `:PythonTestFile`    | Run test file with `neotest`                                                         |
+| Default KeyMap | Command                    | Functionality                                                                        |
+| -------------- | -------------------------- | ------------------------------------------------------------------------------------ |
+| `<leader>pi`   | `:PythonVEnvInstall`       | Create a venv and install dependencies if a supported python package format is found |
+| `<leader>pd`   | `:PythonDap`               | Create and save a new Dap configuration                                              |
+| `<leader>ptt`  | `:PythonTest`              | Run Suite of tests with `neotest`                                                    |
+| `<leader>ptm`  | `:PythonTestMethod`        | Run test function/method with `neotest`                                              |
+| `<leader>ptf`  | `:PythonTestFile`          | Run test file with `neotest`                                                         |
+| `<leader>ppe`  | `:PythonTSToggleEnumerate` | Turn a regular list into `enumerate()` list and back                                 |
 
 ## Advanced Commands
 
-| Command                   | Functionality                                                           |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `:PythonVEnvDeleteSelect` | Select a venv to delete from `python.nvim` state                        |
-| `:PythonVEnvDelete`       | Delete current selected venv in project in `python.nvim` state          |
-| `:PythonDebugTest`        | Run Suite of tests with `neotest` in `dap` mode with `dap-python`       |
-| `:PythonDebugTestMethod`  | Run test function/method with `neotest` in `dap` mode with `dap-python` |
-| `:PythonDebugTestFile`    | Run test file with `neotest` in `dap` mode with `dap-python`            |
+| Default KeyMap | Command                   | Functionality                                                           |
+| -------------- | ------------------------- | ----------------------------------------------------------------------- |
+| `<leader>ped`  | `:PythonVEnvDeleteSelect` | Select a venv to delete from `python.nvim` state                        |
+| `<leader>peD`  | `:PythonVEnvDelete`       | Delete current selected venv in project in `python.nvim` state          |
+| `<leader>ptdd` | `:PythonDebugTest`        | Run Suite of tests with `neotest` in `dap` mode with `dap-python`       |
+| `<leader>ptdm` | `:PythonDebugTestMethod`  | Run test function/method with `neotest` in `dap` mode with `dap-python` |
+| `<leader>ptdf` | `:PythonDebugTestFile`    | Run test file with `neotest` in `dap` mode with `dap-python`            |
 
 ## Supported python package managers
 
