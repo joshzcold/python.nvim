@@ -48,7 +48,19 @@ local always = {
 local snippets = {
   -- Main
   ls.s(
-    { trig = "main", name = "Main", dscr = "Create a main function" },
+    { trig = "main", name = "Main", dscr = "python.nvim: Create a main function" },
+    fmt([[
+    def main():
+      {}
+
+    if __name__ == "__main__":
+      main()
+    ]], ls.i(0)),
+    not_in_fn
+  ),
+
+  ls.s(
+    { trig = "ifmain", name = "Main", dscr = "python.nvim: Create a main function" },
     fmt([[
     def main():
       {}
@@ -61,10 +73,10 @@ local snippets = {
 
   ls.s(
     {
-      trig = "args_typed",
+      trig = "argparse_typed",
       name = "Argparse Typed Arguments",
       dscr =
-      "Argparse mapping to dataclass for typed completion of arguments"
+      "python.nvim: Argparse mapping to dataclass for typed completion of arguments"
     },
     fmt([[
       import argparse
@@ -97,7 +109,7 @@ local snippets = {
     {
       trig = "colors",
       name = "Color variables",
-      dscr = "Python const variables of terminal colors escape sequences."
+      dscr = "python.nvim: Python const variables of terminal colors escape sequences."
     },
     fmt([[
       PURPLE = "\033[95m"
@@ -122,7 +134,7 @@ local snippets = {
     {
       trig = "match_case",
       name = "Match-Case statement",
-      dscr = "Python Match Case statement with default case."
+      dscr = "python.nvim: Python Match Case statement with default case."
     },
     fmt([[
       match {var}:
@@ -141,7 +153,7 @@ local snippets = {
     {
       trig = "switch_case",
       name = "Match-Case statement",
-      dscr = "Python Match Case statement with default case."
+      dscr = "python.nvim: Python Match Case statement with default case."
     },
     fmt([[
       match {var}:
@@ -160,7 +172,7 @@ local snippets = {
     {
       trig = "switch_case",
       name = "Match-Case statement",
-      dscr = "Python Match Case statement with default case."
+      dscr = "python.nvim: Python Match Case statement with default case."
     },
     fmt([[
       match {var}:
@@ -177,9 +189,9 @@ local snippets = {
   ),
   ls.s(
     {
-      trig = "ternary_condition",
+      trig = "if_ternary_condition",
       name = "Python version of a ternay",
-      dscr = "Single line conditional, emulating ternarary"
+      dscr = "python.nvim: Single line conditional, emulating ternarary"
     },
     fmt([[
       {var} = "{foo}" if {True} else "{bar}"{finally}
@@ -196,7 +208,7 @@ local snippets = {
     {
       trig = "list_comprehension",
       name = "Python create list loop expression",
-      dscr = "Create new list from expression inside of list"
+      dscr = "python.nvim: Create new list from expression inside of list"
     },
     fmt([[
       {var} = [a for a in x if a == True]
@@ -209,7 +221,7 @@ local snippets = {
     {
       trig = "merge_dicts",
       name = "Python create dict from 2 dicts using spread operation",
-      dscr = "Create dictionary from spread operator"
+      dscr = "python.nvim: Create dictionary from spread operator"
     },
     fmt([[
       {var} = {{**{dict_1}, **{dict_2} }}
@@ -224,7 +236,7 @@ local snippets = {
     {
       trig = "with_open",
       name = "python create open file io",
-      dscr = "create io object with open"
+      dscr = "python.nvim: create io object with open"
     },
     fmt([[
       with open("/path", "{r}", encoding="utf-8") as f:
@@ -239,7 +251,23 @@ local snippets = {
     {
       trig = "for_with_index",
       name = "Python For in loop with index",
-      dscr = "for in loop with index in python"
+      dscr = "python.nvim: for in loop with index in python"
+    },
+    fmt([[
+      for i, {val} in enumerate({var}):
+        ...{finally}
+    ]], {
+      val = ls.i(1, { "val" }),
+      var = ls.i(2, { "var" }),
+      finally = ls.i(0),
+    }),
+    always
+  ),
+  ls.s(
+    {
+      trig = "enumerate",
+      name = "Python For in loop with index",
+      dscr = "python.nvim: for in loop with index in python"
     },
     fmt([[
       for i, {val} in enumerate({var}):
@@ -255,7 +283,7 @@ local snippets = {
     {
       trig = "colored_logs",
       name = "Python colorized logger formatter",
-      dscr = "logging module formatter for colored logs"
+      dscr = "python.nvim: logging module formatter for colored logs"
     },
     fmt([[
       import logging
@@ -301,7 +329,7 @@ local snippets = {
     {
       trig = "requests_get",
       name = "requests GET",
-      dscr = "requests Library get call",
+      dscr = "python.nvim: requests Library get call",
     },
     fmt([[
         resp = requests.get(url="{}", headers={{}}, params={{}})
@@ -318,7 +346,7 @@ local snippets = {
     {
       trig = "requests_post",
       name = "requests POST",
-      dscr = "requests Library post call",
+      dscr = "python.nvim: requests Library post call",
     },
     fmt([[
         resp = requests.post(url="{}", headers={{}}, params={{}}, body={{
@@ -337,7 +365,7 @@ local snippets = {
     {
       trig = "requests_put",
       name = "requests PUT",
-      dscr = "requests Library put call",
+      dscr = "python.nvim: requests Library put call",
     },
     fmt([[
         resp = requests.put(url="{}", headers={{}}, params={{}}, body={{
@@ -356,7 +384,7 @@ local snippets = {
     {
       trig = "requests_delete",
       name = "requests DELETE",
-      dscr = "requests Library delete call",
+      dscr = "python.nvim: requests Library delete call",
     },
     fmt([[
         resp = requests.delete(url="{}", headers={{}}, params={{}})
@@ -368,7 +396,61 @@ local snippets = {
       {}
     ),
     always
-  )
+  ),
+  ls.s(
+    {
+      trig = "add_argument_string",
+      name = "argparse string arg",
+      dscr = "python.nvim: argparse string argument",
+    },
+    fmt([[
+        parser.add_argument('--{}', metavar='{}', type=str, help='{}', required=True)
+      ]],
+      {
+        ls.i(1, "arg"),
+        ls.i(2, "-a"),
+        ls.i(3, "help"),
+      },
+      {}
+    ),
+    always
+  ),
+  ls.s(
+    {
+      trig = "add_argument_boolean",
+      name = "argparse string bool",
+      dscr = "python.nvim: argparse bool argument flag",
+    },
+    fmt([[
+        parser.add_argument('--{}', metavar='{}', action="store_true", help='{}')
+      ]],
+      {
+        ls.i(1, "on"),
+        ls.i(2, "-y"),
+        ls.i(3, "Turn on this feature"),
+      },
+      {}
+    ),
+    always
+  ),
+  ls.s(
+    {
+      trig = "add_argument_list",
+      name = "argparse string list",
+      dscr = "python.nvim: argparse list arguments",
+    },
+    fmt([[
+        parser.add_argument('--{}', metavar='{}', action="append", help='{}')
+      ]],
+      {
+        ls.i(1, "list"),
+        ls.i(2, "-l"),
+        ls.i(3, "Append arguments into a list"),
+      },
+      {}
+    ),
+    always
+  ),
 }
 
 function M.load_snippets()
