@@ -88,6 +88,14 @@ return {
         -- Load python.nvim python snippets
         python_lua_snippets = false,
 
+        -- List of text actions to take on InsertLeave, TextChanged
+        -- Put in empty table or nil to disable
+        enabled_text_actions = {
+            "f-strings" -- When inserting {}, put in an f-string
+        },
+        -- Adjust when enabled_text_actions is triggered
+        enabled_text_actions_autocmd_events = { "InsertLeave", "TextChanged" },
+
         -- Load python keymaps. Everything starting with <leader>p...
         keymaps = {
             -- following nvim_set_keymap() mode, lhs, rhs, opts
@@ -164,6 +172,7 @@ return {
 
 - [ ] Treesitter integration
   - [ ] Functions utilizing treesitter for helpful code actions
+    - [X] Auto insert fstrings while typing `{}`
 
 ## Commands
 
@@ -203,3 +212,5 @@ return {
 Use this plugin if you want a more simple venv management plugin for your workflow.
 
 [go.nvim](https://github.com/ray-x/go.nvim) for inspiration.
+
+[nvim-puppeteer](https://github.com/chrisgrieser/nvim-puppeteer) for treesitter action on inserting f-strings

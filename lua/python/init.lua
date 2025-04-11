@@ -11,6 +11,7 @@ function M.setup(opts)
   -- Auto load venv on lsp server attach
   vim.api.nvim_create_autocmd({ "LspAttach" }, {
     pattern = config.auto_venv_lsp_attach_patterns,
+    desc = "python.nvim: Actions after lsp is ready. Attach venv",
     group = id,
     callback = function(args)
       local create = require("python.venv.create")
@@ -36,6 +37,7 @@ function M.setup(opts)
   -- Load up commands for users
   vim.api.nvim_create_autocmd({ "FileType" }, {
     pattern = config.command_setup_filetypes,
+    desc = "python.nvim: Loading commands for python",
     group = id,
     callback = function()
       local commands = require("python.commands")
@@ -52,12 +54,38 @@ function M.setup(opts)
   })
   vim.api.nvim_create_autocmd({ "BufEnter" }, {
     pattern = "test_*.py",
+    desc = "python.nvim: Loading commands for test files",
     group = id,
     callback = function()
       local test = require("python.test")
       test.load_commands()
     end,
   })
+
+  if config.enabled_text_actions then
+    local ts = require("python.treesitter.commands")
+    local enabled_text_actions_map = {
+      ["f-strings"] = ts.pythonFStr
+    }
+
+    vim.api.nvim_create_autocmd(config.enabled_text_actions_autocmd_events, {
+      group = id,
+      desc = "python.nvim: Text actions while changing text",
+      callback = function(ctx)
+        local buf = ctx.buf
+        if vim.bo[buf].ft ~= "python" then
+          return
+        end
+        -- deferred to prevent race conditions with other autocmds
+        for _, act in pairs(config.enabled_text_actions) do
+          if enabled_text_actions_map[act] then
+            local stringTransformFunc = enabled_text_actions_map[act]
+            vim.defer_fn(stringTransformFunc, 1)
+          end
+        end
+      end,
+    })
+  end
 end
 
 return setmetatable(M, {
