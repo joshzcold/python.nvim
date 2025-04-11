@@ -170,25 +170,6 @@ local snippets = {
   ),
   ls.s(
     {
-      trig = "switch_case",
-      name = "Match-Case statement",
-      dscr = "python.nvim: Python Match Case statement with default case."
-    },
-    fmt([[
-      match {var}:
-        case "{one}":
-          ...{finally}
-        case _:
-          ...
-    ]], {
-      var = ls.i(1, { "var" }),
-      one = ls.i(2, { "one" }),
-      finally = ls.i(0)
-    }),
-    always
-  ),
-  ls.s(
-    {
       trig = "if_ternary_condition",
       name = "Python version of a ternay",
       dscr = "python.nvim: Single line conditional, emulating ternarary"
