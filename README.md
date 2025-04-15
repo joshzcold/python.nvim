@@ -209,6 +209,16 @@ return {
 | pip     | dev-requirements.txt | `pip install -r` |
 | pip     | requirements.txt     | `pip install -r` |
 
+## Supported OS's
+
+- [x] Linux
+
+- [ ] MacOS (Mostly should work)
+  - [ ] I am detecting python interpreters in homebrew. Does the community use other methods of installing python?
+
+- [ ] Windows (Un tested)
+  - [ ] Most likely spots where we are mixing up `/` vs `\` in paths
+
 ## Special Thanks
 
 [swenv.nvim](https://github.com/AckslD/swenv.nvim) For almost all of the logic in selecting virtual envs.

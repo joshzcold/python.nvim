@@ -12,6 +12,7 @@ local config = require('python.config')
 local state = require("python.state")
 local Popup = require("nui.popup")
 local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
+local IS_MACOS = vim.uv.os_uname().sysname == 'Darwin'
 
 --- Set venv. Only set venv if its different than current.
 --- local venv_dir = settings.auto_create_venv_dir
@@ -307,7 +308,12 @@ local function python_interpreters()
   if IS_WINDOWS then
     return { "python3" }
   end
+  -- TODO for macos we probably need to look in other places other than homebrew
   local pythons = vim.fn.globpath("/usr/bin/", 'python3.*', false, true)
+  if IS_MACOS then
+    local homebrew_path = vim.fn.globpath("/opt/homebrew/bin/", 'python3.*', false, true)
+    pythons = vim.tbl_extend('force', pythons, homebrew_path)
+  end
   local interpreters = nil
   for _, p in pairs(pythons) do
     if not interpreters then
@@ -369,7 +375,7 @@ local function set_venv_state()
   if detect_val.venv_path == nil or detect_val.python_interpreter == nil then
     local default_input = config.auto_create_venv_path(new_parent_dir)
     vim.schedule(function()
-      vim.ui.input({ prompt = "Input new venv path", default = default_input }, function(venv_path_user_input)
+      vim.ui.input({ prompt = "Input new venv path: ", default = default_input }, function(venv_path_user_input)
         local wanted_dir = vim.fs.dirname(venv_path_user_input)
         if vim.fn.isdirectory(wanted_dir) == 0 then
           vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
@@ -377,7 +383,7 @@ local function set_venv_state()
           return
         end
         vim.schedule(function()
-          vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter' },
+          vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter: ' },
             function(python_interpreter_user_input)
               create_venv_with_python(venv_path_user_input, python_interpreter_user_input, function()
                 install_function(install_file, venv_path_user_input, function()
@@ -437,11 +443,11 @@ local function delete_venv_from_state(venv_key)
 
   python_venv.set_venv_path(nil)
   lsp.notify_workspace_did_change()
-  vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
 
-  for k, v in ipairs(python_state.venvs) do
-    if v == venv_key then
-      table.remove(python_state.venvs, k)
+  for k, v in pairs(python_state.venvs) do
+    if k == venv_key then
+      python_state.venvs[venv_key] = nil
+      vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
       break
     end
   end
@@ -457,7 +463,7 @@ local function delete_venv_from_selection()
   end
 
   vim.ui.select(keys, {
-    prompt = "Delete venv project from state"
+    prompt = "Delete venv project from state: "
   }, function(choice)
     delete_venv_from_state(choice)
   end)
@@ -469,12 +475,12 @@ function M.delete_venv(select)
   if select then
     delete_venv_from_selection()
   else
-    local python_venv = require('python.venv')
-    local current_venv = python_venv.current_venv()
-    if not current_venv then
+    local python_state = state.State()
+    local cwd = vim.fn.getcwd()
+    if not python_state.venvs[cwd] then
       vim.notify_once("python.nvim: Current venv is nil. Cant continue", vim.log.levels.WARN)
     end
-    delete_venv_from_state(vim.fs.dirname(current_venv.path))
+    delete_venv_from_state(cwd)
   end
 end
 
@@ -485,7 +491,7 @@ function M.user_set_venv_in_state_confirmation(venv_path)
   local cwd = vim.fn.getcwd()
   local python_state = state.State()
   vim.ui.select({ "Yes", "No" }, {
-    prompt = string.format("Save venv path for this cwd? '%s' -> '%s'", cwd, venv_path)
+    prompt = string.format("Save venv path for this cwd? '%s' -> '%s': ", cwd, venv_path)
   }, function(choice)
     if choice == "Yes" then
       python_state.venvs[cwd] = {

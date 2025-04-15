@@ -141,7 +141,7 @@ M.pick_venv = function()
   vim.schedule(function()
     local items = config.get_venvs(config.venvs_path)
     vim.ui.select(items, {
-      prompt = 'Select python venv',
+      prompt = 'Select python venv: ',
       format_item = function(item)
         return string.format('%s (%s) [%s]', item.name, item.path, item.source)
       end,

@@ -43,7 +43,7 @@ end
 local function create_dap_config(cwd, venv, python_state)
   local dap = require("dap")
   vim.ui.select({ "file", "file:args", "program:args" }, {
-    prompt = "python.nvim: Select new dap style configuration"
+    prompt = "python.nvim: Select new dap style configuration: "
   }, function(choice)
     if not choice then
         return
