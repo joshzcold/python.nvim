@@ -235,6 +235,52 @@ local function pdm_sync(pdm_lock_path, venv_dir, callback)
   )
 end
 
+--- Run pdm sync at lock file directory. Set env path when done.
+---@param poetry_lock_path string full path to pdm lock file
+---@param venv_dir string full path to pdm lock file
+---@param callback function
+local function poetry_sync(poetry_lock_path, venv_dir, callback)
+  vim.notify_once('python.nvim: starting poetry sync at: ' .. poetry_lock_path, vim.log.levels.INFO)
+  local dir_name = vim.fs.dirname(poetry_lock_path)
+  vim.system(
+    { 'poetry', 'env', 'use', vim.fs.joinpath(venv_dir, "bin", "python") },
+    {
+      cwd = dir_name
+    },
+    function(obj1)
+      if obj1.code ~= 0 then
+        vim.notify_once('python.nvim: ' .. vim.inspect(obj1.stderr), vim.log.levels.ERROR)
+        deactivate_system_call_ui(10000)
+        return
+      end
+      vim.system(
+        { 'poetry', 'sync', '--no-root' },
+        {
+          cwd = dir_name,
+          stdout = show_system_call_progress
+        },
+        function(obj2)
+          vim.schedule(
+            function()
+              if obj2.code ~= 0 then
+                vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+                return
+              end
+              show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+                deactivate_system_call_ui()
+              end)
+              callback()
+            end
+          )
+        end
+      )
+      vim.schedule(function()
+        activate_system_call_ui()
+      end)
+    end
+  )
+end
+
 --- Create venv with python venv module and pip install at location
 ---@param requirements_path string full path to requirements.txt, dev-requirements.txt or pyproject.toml
 ---@param venv_dir string
@@ -290,6 +336,9 @@ local check_paths = {
   ['pyproject.toml'] = function(install_file, venv_dir, callback)
     pip_install_with_venv(install_file, venv_dir, callback)
   end,
+  ['poetry.lock'] = function(install_file, venv_dir, callback)
+    poetry_sync(install_file, venv_dir, callback)
+  end,
   ['pdm.lock'] = function(install_file, venv_dir, callback)
     pdm_sync(install_file, venv_dir, callback)
   end,
@@ -299,7 +348,7 @@ local check_paths = {
 }
 
 local check_paths_ordered_keys = {
-  "uv.lock", "pdm.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
+  "uv.lock", "pdm.lock", "poetry.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
 }
 
 ---@return table<string> list of potential python interpreters to use

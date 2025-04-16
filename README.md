@@ -201,19 +201,21 @@ return {
 
 ## Supported python package managers
 
-| Manager | Install File         | Install Method   |
-| ------- | -------------------- | ---------------- |
-| uv      | uv.lock              | `uv sync`        |
-| pdm     | pdm.lock             | `pdm sync`       |
-| pip     | pyproject.toml       | `pip install .`  |
-| pip     | dev-requirements.txt | `pip install -r` |
-| pip     | requirements.txt     | `pip install -r` |
+| Manager | Install File         | Install Method          |
+| ------- | -------------------- | ----------------------- |
+| uv      | uv.lock              | `uv sync`               |
+| pdm     | pdm.lock             | `pdm sync`              |
+| poetry  | poetry.lock          | `poetry sync --no-root` |
+| pip     | pyproject.toml       | `pip install .`         |
+| pip     | dev-requirements.txt | `pip install -r`        |
+| pip     | requirements.txt     | `pip install -r`        |
 
 ## Supported OS's
 
 - [x] Linux
 
 - [ ] MacOS (Mostly should work)
+
   - [ ] I am detecting python interpreters in homebrew. Does the community use other methods of installing python?
 
 - [ ] Windows (Un tested)

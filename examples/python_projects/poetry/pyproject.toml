@@ -1,0 +1,22 @@
+[project]
+name = "poetry"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "joshzcold@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests (>=2.32.3,<3.0.0)",
+    "boto3 (>=1.37.35,<2.0.0)"
+]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+mock = "^5.2.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
