@@ -398,13 +398,13 @@ local function python_interpreters()
   if IS_MACOS then
     local homebrew_path = vim.fn.globpath("/opt/homebrew/bin/", 'python3.*', false, true)
     for _, p in pairs(homebrew_path) do
-      table.insert(pythons, p)
+      table.insert(pythons, 1, p)
     end
   end
   local found_hatch = hatch_interpreters()
   if found_hatch then
     for _, p in pairs(found_hatch) do
-      table.insert(pythons, p)
+      table.insert(pythons, 1, p)
     end
   end
   local interpreters = nil
