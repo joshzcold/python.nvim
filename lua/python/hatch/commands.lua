@@ -96,6 +96,36 @@ local function hatch_install_version(version)
   )
 end
 
+--- Delete a python version using hatch
+---@param version string Python version to delete via hatch
+local function hatch_delete_version(version)
+  vim.schedule(
+    function()
+      vim.system(
+        {"hatch", "python", "remove", version},
+        {
+          stdout = ui.show_system_call_progress
+        },
+        function(obj2)
+          vim.schedule(function()
+            if obj2.code ~= 0 then
+              vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+              ui.deactivate_system_call_ui(10000)
+            else
+              ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+                ui.deactivate_system_call_ui()
+              end)
+            end
+          end)
+        end
+      )
+      vim.schedule(function()
+        ui.activate_system_call_ui()
+      end)
+    end
+  )
+end
+
 
 function M.load_commands()
   vim.api.nvim_create_user_command("PythonHatchInstallPython", function()
@@ -109,24 +139,26 @@ function M.load_commands()
       end
       hatch_install_version(selection)
     end)
-  end, {})
+  end, { desc = "python.nvim: install a python version using hatch."})
   vim.api.nvim_create_user_command("PythonHatchListPython", function()
     if not check_hatch() then
       return
     end
     local versions = hatch_installed_versions()
     vim.print(versions)
-  end, {})
+  end, { desc = "python.nvim: list pythons installed by hatch."})
   vim.api.nvim_create_user_command("PythonHatchDeletePython", function()
     if not check_hatch() then
       return
     end
-  end, {})
-  vim.api.nvim_create_user_command("PythonHatchDeletePython", function()
-    if not check_hatch() then
-      return
-    end
-  end, {})
+    local versions = hatch_installed_versions()
+    vim.ui.select(versions, { prompt = "Select a python version to delete in hatch: " }, function(selection)
+      if not selection then
+        return
+      end
+      hatch_delete_version(selection)
+    end)
+  end, { desc = "python.nvim: delete a python version from hatch."})
 end
 
 return setmetatable(M, {
