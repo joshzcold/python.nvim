@@ -158,8 +158,15 @@ end
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 local function uv_sync(uv_lock_path, venv_dir, callback)
+  if vim.fn.executable("uv") == 0 then
+    vim.notify_once(
+    ("python.nvim: 'uv' application not found please install: %s"):format("https://github.com/astral-sh/uv"),
+      vim.log.levels.ERROR)
+    return
+  end
   vim.notify_once('python.nvim: starting uv sync at: ' .. uv_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(uv_lock_path)
+  vim.print(dir_name)
   vim.system(
     { 'uv', 'sync' },
     {
@@ -194,6 +201,12 @@ end
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 local function pdm_sync(pdm_lock_path, venv_dir, callback)
+  if vim.fn.executable("pdm") == 0 then
+    vim.notify_once(
+    ("python.nvim: 'pdm' application not found please install: %s"):format("https://pdm-project.org/en/latest/"),
+      vim.log.levels.ERROR)
+    return
+  end
   vim.notify_once('python.nvim: starting pdm sync at: ' .. pdm_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(pdm_lock_path)
   vim.system(
@@ -240,6 +253,12 @@ end
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 local function poetry_sync(poetry_lock_path, venv_dir, callback)
+  if vim.fn.executable("poetry") == 0 then
+    vim.notify_once(
+    ("python.nvim: 'poetry' application not found please install: %s"):format("https://python-poetry.org/"),
+      vim.log.levels.ERROR)
+    return
+  end
   vim.notify_once('python.nvim: starting poetry sync at: ' .. poetry_lock_path, vim.log.levels.INFO)
   local dir_name = vim.fs.dirname(poetry_lock_path)
   vim.system(
@@ -351,6 +370,22 @@ local check_paths_ordered_keys = {
   "uv.lock", "pdm.lock", "poetry.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
 }
 
+---
+---@return table found_hatch_pythons list of python interpreters found by hatch
+local function hatch_interpreters()
+  if vim.fn.executable("hatch") == 1 then
+    local hatch_python_paths = vim.fn.expand("~/.local/share/hatch/pythons")
+    if vim.fn.isdirectory(hatch_python_paths) then
+      local found_hatch_pythons = vim.fn.globpath(hatch_python_paths, vim.fs.joinpath("**", "bin", "python3.*"), false,
+        true)
+      if found_hatch_pythons then
+        return found_hatch_pythons
+      end
+    end
+  end
+  return {}
+end
+
 ---@return table<string> list of potential python interpreters to use
 local function python_interpreters()
   -- TODO detect python interpreters from windows
@@ -359,9 +394,18 @@ local function python_interpreters()
   end
   -- TODO for macos we probably need to look in other places other than homebrew
   local pythons = vim.fn.globpath("/usr/bin/", 'python3.*', false, true)
+
   if IS_MACOS then
     local homebrew_path = vim.fn.globpath("/opt/homebrew/bin/", 'python3.*', false, true)
-    pythons = vim.tbl_extend('force', pythons, homebrew_path)
+    for _, p in pairs(homebrew_path) do
+      table.insert(pythons, p)
+    end
+  end
+  local found_hatch = hatch_interpreters()
+  if found_hatch then
+    for _, p in pairs(found_hatch) do
+      table.insert(pythons, p)
+    end
   end
   local interpreters = nil
   for _, p in pairs(pythons) do
