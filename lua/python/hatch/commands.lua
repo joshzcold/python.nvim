@@ -1,3 +1,4 @@
+local ui = require("python.ui")
 local M = {}
 
 
@@ -49,7 +50,7 @@ local function hatch_available_versions()
       end
 
       if available_line_shown then
-        local matched = string.match(line, "(%d%.%d+%s*|%s*%d.%d+)")
+        local matched = string.match(line, "(%s+%d%.%d+%s+|%s+%d.%d+)")
         table.insert(found_available, 1, matched)
       end
     end
@@ -68,7 +69,31 @@ end
 --- Install a python version using hatch
 ---@param version string Python version to install via hatch
 local function hatch_install_version(version)
-  print("TODO install hatch version")
+  vim.schedule(
+    function()
+      vim.system(
+        {"hatch", "python", "install", version},
+        {
+          stdout = ui.show_system_call_progress
+        },
+        function(obj2)
+          vim.schedule(function()
+            if obj2.code ~= 0 then
+              vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+              ui.deactivate_system_call_ui(10000)
+            else
+              ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+                ui.deactivate_system_call_ui()
+              end)
+            end
+          end)
+        end
+      )
+      vim.schedule(function()
+        ui.activate_system_call_ui()
+      end)
+    end
+  )
 end
 
 
