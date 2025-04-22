@@ -433,16 +433,22 @@ local function delete_venv_from_state(venv_key)
   end
   local old_venv_path = python_state.venvs[venv_key].venv_path
   if vim.fn.isdirectory(old_venv_path) then
-    vim.fn.delete(old_venv_path, "rf")
+    vim.ui.select({ "Yes", "No" }, {
+      prompt = ("Delete this venv directory?: %s"):format(old_venv_path)
+    }, function(choice)
+      if choice and choice == "Yes" then
+        vim.fn.delete(old_venv_path, "rf")
+        vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
+      end
+    end)
   end
 
   python_venv.set_venv_path(nil)
   lsp.notify_workspace_did_change()
 
-  for k, v in pairs(python_state.venvs) do
+  for k, _ in pairs(python_state.venvs) do
     if k == venv_key then
       python_state.venvs[venv_key] = nil
-      vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
       break
     end
   end
