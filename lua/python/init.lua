@@ -40,6 +40,7 @@ function M.setup(opts)
     desc = "python.nvim: Loading commands for python",
     group = id,
     callback = function()
+      local venv = require("python.venv")
       local commands = require("python.commands")
       local dap = require("python.dap")
       local snip = require("python.snip")
@@ -52,6 +53,7 @@ function M.setup(opts)
       snip.load_snippets()
       keymap.load_keymaps()
       hatch.load_commands()
+      venv.load_existing_venv()
     end,
   })
   vim.api.nvim_create_autocmd({ "BufEnter" }, {

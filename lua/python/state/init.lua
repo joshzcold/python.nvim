@@ -5,6 +5,7 @@ local M = {}
 ---@field venv_path string
 ---@field install_method string
 ---@field install_file string
+---@field source string
 PythonStateVEnv = {}
 
 ---@class PythonStateDap

@@ -8,7 +8,8 @@ local ui = require("python.ui")
 --- local venv_dir = settings.auto_create_venv_dir
 ---@param venv_path string full path to venv directory
 ---@param venv_name string name of the venv to set
-local function python_set_venv(venv_path, venv_name)
+---@param venv_source? string name of the source of the venv. useful in determining conda or venv
+local function python_set_venv(venv_path, venv_name, venv_source)
   local lsp = require("python.lsp")
   if venv_path then
     local python_venv = require('python.venv')
@@ -18,7 +19,10 @@ local function python_set_venv(venv_path, venv_name)
       current_venv_name = current_venv.name
     end
     if vim.fs.basename(venv_path) ~= current_venv_name then
-      python_venv.set_venv_path({ path = venv_path, name = venv_name, source = "venv" })
+      if not venv_source then
+        venv_source = "venv"
+      end
+      python_venv.set_venv_path({ path = venv_path, name = venv_name, source = venv_source })
       vim.notify_once("python.nvim: set venv at: " .. venv_path)
       lsp.notify_workspace_did_change()
     end
@@ -57,7 +61,7 @@ end
 local function uv_sync(uv_lock_path, venv_dir, callback)
   if vim.fn.executable("uv") == 0 then
     vim.notify_once(
-    ("python.nvim: 'uv' application not found please install: %s"):format("https://github.com/astral-sh/uv"),
+      ("python.nvim: 'uv' application not found please install: %s"):format("https://github.com/astral-sh/uv"),
       vim.log.levels.ERROR)
     return
   end
@@ -100,7 +104,7 @@ end
 local function pdm_sync(pdm_lock_path, venv_dir, callback)
   if vim.fn.executable("pdm") == 0 then
     vim.notify_once(
-    ("python.nvim: 'pdm' application not found please install: %s"):format("https://pdm-project.org/en/latest/"),
+      ("python.nvim: 'pdm' application not found please install: %s"):format("https://pdm-project.org/en/latest/"),
       vim.log.levels.ERROR)
     return
   end
@@ -152,7 +156,7 @@ end
 local function poetry_sync(poetry_lock_path, venv_dir, callback)
   if vim.fn.executable("poetry") == 0 then
     vim.notify_once(
-    ("python.nvim: 'poetry' application not found please install: %s"):format("https://python-poetry.org/"),
+      ("python.nvim: 'poetry' application not found please install: %s"):format("https://python-poetry.org/"),
       vim.log.levels.ERROR)
     return
   end
@@ -381,7 +385,8 @@ local function set_venv_state()
                     python_interpreter = python_interpreter_user_input,
                     venv_path = venv_path_user_input,
                     install_method = detect_val.install_method,
-                    install_file = install_file
+                    install_file = install_file,
+                    source = "venv"
                   }
                   local python_state = state.State()
 
@@ -476,24 +481,25 @@ end
 
 --- Interactively set a venv in state.
 --- This is used when users manually select a venv and want it cached for next run.
----@param venv_path string Path to venv to save for this cwd
-function M.user_set_venv_in_state_confirmation(venv_path)
+---@param venv VEnv venv object to pull from
+function M.user_set_venv_in_state_confirmation(venv)
   local cwd = vim.fn.getcwd()
   local python_state = state.State()
   vim.ui.select({ "Yes", "No" }, {
-    prompt = string.format("Save venv path for this cwd? '%s' -> '%s': ", cwd, venv_path)
+    prompt = string.format("Save env path for this cwd? '%s' -> '%s': ", cwd, venv.path)
   }, function(choice)
     if choice == "Yes" then
       python_state.venvs[cwd] = {
         python_interpreter = "unknown",
-        venv_path = venv_path,
+        venv_path = venv.path,
         install_method = "unknown",
-        install_file = "unknown"
+        install_file = "unknown",
+        source = venv.source
       }
       state.save(python_state)
       vim.notify_once(string.format(
         "python.nvim: Saved venv '%s' for cwd '%s'. Use :PythonVEnvDeleteSelect to remove it.",
-        venv_path, cwd))
+        venv.path, cwd))
     end
   end)
 end
@@ -501,14 +507,26 @@ end
 ---@return table<table<string>, PythonStateVEnv> | nil
 ---@param notify boolean
 function M.detect_venv(notify)
+  local python_venv = require('python.venv')
   local python_state = state.State()
 
   local cwd = vim.fn.getcwd()
 
   -- set venv if cwd is found in state before doing searches.
   if python_state.venvs[cwd] ~= nil and vim.fn.isdirectory(python_state.venvs[cwd].venv_path) ~= 0 then
-    python_set_venv(python_state.venvs[cwd].venv_path, vim.fs.basename(python_state.venvs[cwd].venv_path))
+    python_set_venv(
+      python_state.venvs[cwd].venv_path,
+      vim.fs.basename(python_state.venvs[cwd].venv_path),
+      python_state.venvs[cwd].source
+    )
     return { cwd, python_state.venvs[cwd] }
+  end
+
+  local current_venv = python_venv.current_venv()
+  if current_venv ~= nil then
+    vim.notify_once(("python.nvim: Using existing venv in environment: %s"):format(current_venv.name),
+      vim.log.levels.INFO)
+    return
   end
 
   for _, search_path in pairs(check_paths_ordered_keys) do
@@ -536,6 +554,7 @@ function M.detect_venv(notify)
       return { key, {
         install_method = search_path,
         install_file = found_path,
+        source = "venv",
         python_interpreter = nil,
         venv_path = nil,
       } }

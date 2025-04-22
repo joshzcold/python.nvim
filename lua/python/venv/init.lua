@@ -35,6 +35,7 @@ function M.set_venv_path(venv)
     vim.fn.setenv('CONDA_PREFIX', venv.path)
     vim.fn.setenv('CONDA_DEFAULT_ENV', venv.name)
     vim.fn.setenv('CONDA_PROMPT_MODIFIER', '(' .. venv.name .. ')')
+    venv.name = ("(conda) %s"):format(venv.name)
   else
     vim.fn.setenv('VIRTUAL_ENV', venv.path)
   end
@@ -135,6 +136,50 @@ M.get_venvs = function(venvs_path)
   return venvs
 end
 
+---
+---Checks who appears first in PATH. Returns `true` if `first` appears first and `false` otherwise
+---
+---@param first string|nil
+---@param second string|nil
+---@return boolean
+local has_high_priority_in_path = function(first, second)
+  if first == nil or first == vim.NIL then
+    return false
+  end
+
+  if second == nil or second == vim.NIL then
+    return true
+  end
+
+  return string.find(ORIGINAL_PATH, first) < string.find(ORIGINAL_PATH, second)
+end
+
+M.load_existing_venv = function()
+  local venv
+
+  local venv_env = vim.fn.getenv('VIRTUAL_ENV')
+  if venv_env ~= vim.NIL then
+    venv = {
+      name = vim.fs.basename(venv_env),
+      path = venv_env,
+      source = 'venv',
+    }
+  end
+
+  local conda_env = vim.fn.getenv('CONDA_DEFAULT_ENV')
+  if conda_env ~= vim.NIL and has_high_priority_in_path(conda_env, venv_env) then
+    venv = {
+      name = ("(conda) %s"):format(conda_env),
+      path = vim.fn.getenv('CONDA_PREFIX'),
+      source = 'conda',
+    }
+  end
+
+  if venv then
+    current_venv = venv
+  end
+end
+
 M.pick_venv = function()
   local config = require("python.config")
   local create = require("python.venv.create")
@@ -150,7 +195,7 @@ M.pick_venv = function()
         return
       end
       M.set_venv_path(choice)
-      create.user_set_venv_in_state_confirmation(choice.path)
+      create.user_set_venv_in_state_confirmation(choice)
     end)
   end)
 end
