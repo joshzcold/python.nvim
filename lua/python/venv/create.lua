@@ -35,7 +35,7 @@ end
 local function search_up(dir_or_file)
   local found = nil
   local dir_to_check = nil
-  -- get parent directory via vim expand
+  -- get parent directory of current file in buffer via vim expand
   local dir_template = '%:p:h'
   while not found and dir_to_check ~= '/' do
     dir_to_check = vim.fn.expand(dir_template)
@@ -344,10 +344,10 @@ local function create_venv_with_python(venv_path, python_interpreter, callback)
 end
 
 local function set_venv_state()
-  local detect = M.detect_venv(false)
+  local detect = M.detect_venv(false, false)
 
   if detect == nil then
-    vim.notify_once(
+    vim.notify(
       "python.nvim: Could not find a python dependency file for this cwd",
       vim.log.levels.WARN)
     return
@@ -400,6 +400,12 @@ local function set_venv_state()
         end)
       end)
     end)
+    return
+  end
+  if not install_function then
+    vim.notify(
+      ("python.nvim: Unable to find an install function for detected method: '%s'"):format(detect_val.install_method),
+      vim.log.levels.ERROR)
     return
   end
   install_function(install_file, venv_path, function() end)
@@ -477,11 +483,12 @@ function M.delete_venv(select)
     delete_venv_from_selection()
   else
     local python_state = state.State()
-    local cwd = vim.fn.getcwd()
-    if not python_state.venvs[cwd] then
-      vim.notify_once("python.nvim: Current venv is nil. Cant continue", vim.log.levels.WARN)
+    local detect = M.detect_venv(false, true)
+    if detect == nil or not python_state.venvs[detect[1]] then
+      vim.notify("python.nvim: Current venv in not found in state. Cant continue", vim.log.levels.WARN)
+      return
     end
-    delete_venv_from_state(cwd)
+    delete_venv_from_state(detect[1])
   end
 end
 
@@ -511,60 +518,71 @@ function M.user_set_venv_in_state_confirmation(venv)
 end
 
 ---@return table<table<string>, PythonStateVEnv> | nil
----@param notify boolean
-function M.detect_venv(notify)
-  local python_venv = require('python.venv')
+---@param notify boolean Send notification when venv is not found
+---@param cwd_allowed? boolean Allow use of cwd when detecting
+function M.detect_venv(notify, cwd_allowed)
   local python_state = state.State()
 
-  local cwd = vim.fn.getcwd()
-
-  -- set venv if cwd is found in state before doing searches.
-  if python_state.venvs[cwd] ~= nil and vim.fn.isdirectory(python_state.venvs[cwd].venv_path) ~= 0 then
-    python_set_venv(
-      python_state.venvs[cwd].venv_path,
-      vim.fs.basename(python_state.venvs[cwd].venv_path),
-      python_state.venvs[cwd].source
-    )
-    return { cwd, python_state.venvs[cwd] }
-  end
-
-  local current_venv = python_venv.current_venv()
-  if current_venv ~= nil then
-    vim.notify_once(("python.nvim: Using existing venv in environment: %s"):format(current_venv.name),
-      vim.log.levels.INFO)
-    return
-  end
+  local found_parent_dir = nil
+  local found_search_path = nil
+  local found_key = nil
+  local found_path = nil
 
   for _, search_path in pairs(check_paths_ordered_keys) do
-    local found_path = nil
+    found_path = nil
     found_path = search_up(search_path)
     if found_path ~= nil then
-      -- TODO allow user to select if they want this to be path scoped or git repo scoped
-      local parent_dir = vim.fs.dirname(found_path)
-      local key = parent_dir
+      found_parent_dir = vim.fs.dirname(found_path)
+      local key = found_parent_dir
+
+      found_search_path = search_path
+      found_key = key
+      found_path = found_path
 
       if python_state.venvs[key] ~= nil then
         local venv_path = python_state.venvs[key].venv_path
         if vim.fn.isdirectory(venv_path) == 0 then
           delete_venv_from_state(key)
         else
-          python_set_venv(venv_path, vim.fs.basename(parent_dir))
+          python_set_venv(venv_path, vim.fs.basename(found_parent_dir))
           return { key, python_state.venvs[key] }
         end
       end
-      if notify then
-        vim.notify_once(
-          string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", parent_dir),
-          vim.log.levels.WARN)
-      end
-      return { key, {
-        install_method = search_path,
-        install_file = found_path,
-        source = "venv",
-        python_interpreter = nil,
-        venv_path = nil,
-      } }
+
+      break
     end
+  end
+  if cwd_allowed then
+    local cwd = vim.fn.getcwd()
+    if not found_parent_dir then
+      found_parent_dir = cwd
+    end
+
+    -- set venv if cwd is found in state before doing searches.
+    if python_state.venvs[cwd] ~= nil and vim.fn.isdirectory(python_state.venvs[cwd].venv_path) ~= 0 then
+      python_set_venv(
+        python_state.venvs[cwd].venv_path,
+        vim.fs.basename(python_state.venvs[cwd].venv_path),
+        python_state.venvs[cwd].source
+      )
+      return { cwd, python_state.venvs[cwd] }
+    end
+  end
+  -- We found a dependency file, but we aren't stored in State
+  -- cwd check also failed, so we can continue.
+  if found_search_path and found_key and found_path then
+    return { found_key, {
+      install_method = found_search_path,
+      install_file = found_path,
+      source = "venv",
+      python_interpreter = nil,
+      venv_path = nil,
+    } }
+  end
+  if notify then
+    vim.notify_once(
+      string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", found_parent_dir),
+      vim.log.levels.WARN)
   end
   return nil
 end

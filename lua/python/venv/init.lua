@@ -151,7 +151,12 @@ local has_high_priority_in_path = function(first, second)
     return true
   end
 
-  return string.find(ORIGINAL_PATH, first) < string.find(ORIGINAL_PATH, second)
+  local find_first = string.find(ORIGINAL_PATH, first)
+  local find_second = string.find(ORIGINAL_PATH, second)
+  if find_first and find_second then
+    return  find_first <  find_second
+  end
+  return false
 end
 
 M.load_existing_venv = function()
