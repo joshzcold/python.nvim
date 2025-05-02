@@ -278,14 +278,14 @@ local snippets = {
           red = "\033[91m"
           bold_red = "\033[1;31m"
           reset = "\033[0m"
-          format = "%(levelname)s - %(message)s (%(filename)s:%(lineno)d)"  # type: ignore
+          str_format = "%(levelname)s - %(message)s (%(filename)s:%(lineno)d)"  # type: ignore
 
           FORMATS = {{
-              logging.DEBUG: grey + format + reset,  # type: ignore
-              logging.INFO: cyan + format + reset,  # type: ignore
-              logging.WARNING: yellow + format + reset,  # type: ignore
-              logging.ERROR: red + format + reset,  # type: ignore
-              logging.CRITICAL: bold_red + format + reset,  # type: ignore
+              logging.DEBUG: grey + str_format + reset,  # type: ignore
+              logging.INFO: cyan + str_format + reset,  # type: ignore
+              logging.WARNING: yellow + str_format + reset,  # type: ignore
+              logging.ERROR: red + str_format + reset,  # type: ignore
+              logging.CRITICAL: bold_red + str_format + reset,  # type: ignore
           }}
 
           def format(self, record):
