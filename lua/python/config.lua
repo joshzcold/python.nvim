@@ -38,6 +38,22 @@ local defaults = {
   -- Adjust when enabled_text_actions is triggered
   enabled_text_actions_autocmd_events = { "InsertLeave" },
 
+  treesitter = {
+    functions = {
+      -- Wrap treesitter identifier under cursor using substitute_options
+      wrapper = {
+        -- Substitute options for PythonTSWrapWithFunc
+        substitute_options = {
+          "np.array(%s)",
+        },
+
+        -- Look for tree-sitter types to wrap
+        find_types = {
+          "tuple", "string", "true", "false", "list", "call", "parenthesized_expression"
+        }
+      }
+    }
+  },
   -- Load python keymaps. Everything starting with <leader>p...
   keymaps = {
     -- following nvim_set_keymap() mode, lhs, rhs, opts
@@ -60,6 +76,7 @@ local defaults = {
 
       -- Language Actions
       ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+      ['<leader>ppw'] = { "n", "<cmd>PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
     }
   },
   -- Settings regarding ui handling

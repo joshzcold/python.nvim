@@ -2,6 +2,7 @@
 local M = {}
 local nodes = require('python.treesitter.nodes')
 local ts = require('python.treesitter')
+local config = require('python.config')
 
 ---get node at cursor and validate that the user has at least nvim 0.9
 ---@return nil|TSNode nil if no node or nvim version too old
@@ -11,6 +12,21 @@ local function getNodeAtCursor()
 		return
 	end
 	return vim.treesitter.get_node()
+end
+
+---@param node TSNode node to start search
+---@param node_types table list of node types to look for
+---@return nil | TSNode
+local function findNodeOfParentsWithType(node, node_types)
+	local nodeType = node:type()
+	if vim.list_contains(node_types, nodeType) then
+		return node
+	end
+	local parent = node:parent()
+	if parent then
+		return findNodeOfParentsWithType(parent, node_types)
+	end
+	return nil
 end
 
 ---@param node TSNode
@@ -73,6 +89,38 @@ local function ts_toggle_enumerate()
 	end
 end
 
+---@param subtitute_option nil|string if string then use as subsitute
+---	otherwise select from config
+local function ts_wrap_at_cursor(subtitute_option)
+	local node = getNodeAtCursor()
+	if not node then return end
+
+
+	local node_types = config.treesitter.functions.wrapper.find_types
+	local find_node = findNodeOfParentsWithType(node, node_types)
+	if not find_node then
+		vim.notify(("python.nvim: Could not find ts node of type: %s"):format(vim.inspect(node_types)))
+		return
+	end
+
+	local node_text = getNodeText(find_node)
+
+	if subtitute_option and subtitute_option ~= "" then
+		local new_text = subtitute_option:format(node_text)
+		replaceNodeText(node, new_text)
+		return
+	end
+	vim.ui.select(config.treesitter.functions.wrapper.substitute_options, {
+		prompt = ("Wrapping: %s <- with:"):format(node_text),
+	}, function(selection)
+		if not selection then
+			return
+		end
+		local new_text = selection:format(node_text)
+		replaceNodeText(find_node, new_text)
+	end)
+end
+
 function M.load_commands()
 	vim.api.nvim_create_user_command("PythonTestTSQueries", function()
 		ts.test_ts_queries()
@@ -81,6 +129,14 @@ function M.load_commands()
 	vim.api.nvim_create_user_command("PythonTSToggleEnumerate", function()
 		ts_toggle_enumerate()
 	end, {})
+	vim.api.nvim_create_user_command("PythonTSWrapWithFunc", function(substitute_option)
+		ts_wrap_at_cursor(substitute_option.args)
+	end, {
+		complete = function()
+			return config.treesitter.functions.wrapper.substitute_options
+		end,
+		nargs = "?",
+	})
 end
 
 function M.pythonFStr()

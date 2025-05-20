@@ -85,6 +85,22 @@ return {
         enabled_text_actions = {
             "f-strings" -- When inserting {}, put in an f-string
         },
+        -- options with treesitter
+        treesitter = {
+            functions = {
+            -- Wrap treesitter identifier under cursor using substitute_options
+                wrapper = {
+                    -- Substitute options for PythonTSWrapWithFunc
+                    substitute_options = {
+                    "np.array(%s)",
+                    },
+                    -- Look for tree-sitter types to wrap
+                    find_types = {
+                    "tuple", "string", "true", "false", "list", "call", "parenthesized_expression"
+                    }
+                }
+            }
+        },
         -- Adjust when enabled_text_actions is triggered
         enabled_text_actions_autocmd_events = { "InsertLeave" },
 
@@ -110,6 +126,7 @@ return {
 
             -- Language Actions
             ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+            ['<leader>ppw'] = { "n", "<cmd>PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
             }
         },
         -- Settings regarding ui handling
@@ -176,6 +193,10 @@ return {
       > See `enabled_text_actions` in config
     - [x] Toggle a list into an `enumerate()` list with index
       > Try `:PythonTSToggleEnumerate` on a `for x in list` list
+    - [x] Wrap treesitter objects with a pattern.
+      > Try `:PythonTSWrapWithFunc` on a list or tuple. Check config for options
+      > Can turn `[1, 2, 3]` -> `np.array([1, 2, 3])`
+      > Supply a pattern to immediately wrap like `:PythonTSWrapWithFunc np.array(%s)`
 
 ## Commands
 
@@ -189,6 +210,7 @@ return {
 | `<leader>ptm`  | `:PythonTestMethod`        | Run test function/method with `neotest`                                              |
 | `<leader>ptf`  | `:PythonTestFile`          | Run test file with `neotest`                                                         |
 | `<leader>ppe`  | `:PythonTSToggleEnumerate` | Turn a regular list into `enumerate()` list and back                                 |
+| `<leader>ppw`  | `:PythonTSWrapWithFunc`    | Wrap treesitter indentifiers in a pattern for quick injection.                       |
 
 ## Advanced Commands
 
