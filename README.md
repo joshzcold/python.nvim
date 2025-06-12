@@ -3,7 +3,7 @@
 Python Tools for Neovim
 
 > [!WARNING]
-> This plugin is currently in alpha status and can be subject to breaking changes
+> This plugin is currently in beta status and can be subject to breaking changes
 > Please file issues when found and feel free to contribute
 
 https://github.com/user-attachments/assets/025f8475-e946-4875-bc91-53508ea5d3fa
