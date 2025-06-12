@@ -38,7 +38,6 @@ local function getNodeText(node) return vim.treesitter.get_node_text(node, 0) en
 local function replaceNodeText(node, replacementText)
 	local startRow, startCol, endRow, endCol = node:range()
 	local lines = vim.split(replacementText, "\n")
-	pcall(vim.cmd.undojoin) -- make undos ignore the next change, see #8
 	vim.api.nvim_buf_set_text(0, startRow, startCol, endRow, endCol, lines)
 end
 
@@ -89,12 +88,54 @@ local function ts_toggle_enumerate()
 	end
 end
 
----@param subtitute_option nil|string if string then use as subsitute
+---@param subtitute_option nil|string if string then use as substitute
+---	otherwise select from config
+local function visual_wrap_subsitute_options(subtitute_option)
+	-- TODO get selection of actual selected text
+	local start_pos = vim.fn.getpos("'<")
+	local end_pos = vim.fn.getpos("'>")
+	local start_row = start_pos[2] - 1
+	local start_col = start_pos[3] - 1
+	local end_row = end_pos[2] - 1
+	local end_col = end_pos[3]
+	vim.print(start_row, start_col, end_row, end_col)
+	local selected_buf_text = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+	vim.print(selected_buf_text)
+	local node_text = vim.fn.join(selected_buf_text, "\n")
+	vim.print(node_text)
+	local new_text
+
+	if subtitute_option and subtitute_option ~= "" then
+		new_text = subtitute_option:format(node_text)
+		local lines = vim.split(new_text, "\n")
+		vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, lines)
+		return
+	end
+	vim.ui.select(config.treesitter.functions.wrapper.substitute_options, {
+		prompt = ("Wrapping: %s <- with:"):format(node_text),
+	}, function(selection)
+		if not selection then
+			return
+		end
+		new_text = selection:format(node_text)
+		local lines = vim.split(new_text, "\n")
+		vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, lines)
+		return
+	end)
+end
+
+---@param subtitute_option nil|string if string then use as substitute
 ---	otherwise select from config
 local function ts_wrap_at_cursor(subtitute_option)
+	local m = vim.fn.visualmode() -- detect current mode
+
+	if m == 'v' or m == 'V' or m == '\22' then
+		visual_wrap_subsitute_options()
+		return
+	end
+
 	local node = getNodeAtCursor()
 	if not node then return end
-
 
 	local node_types = config.treesitter.functions.wrapper.find_types
 	local find_node = findNodeOfParentsWithType(node, node_types)
@@ -104,10 +145,11 @@ local function ts_wrap_at_cursor(subtitute_option)
 	end
 
 	local node_text = getNodeText(find_node)
+	local new_text
 
 	if subtitute_option and subtitute_option ~= "" then
-		local new_text = subtitute_option:format(node_text)
-		replaceNodeText(node, new_text)
+		new_text = subtitute_option:format(node_text)
+		replaceNodeText(find_node, new_text)
 		return
 	end
 	vim.ui.select(config.treesitter.functions.wrapper.substitute_options, {
@@ -116,8 +158,9 @@ local function ts_wrap_at_cursor(subtitute_option)
 		if not selection then
 			return
 		end
-		local new_text = selection:format(node_text)
+		new_text = selection:format(node_text)
 		replaceNodeText(find_node, new_text)
+		return
 	end)
 end
 
@@ -136,6 +179,7 @@ function M.load_commands()
 			return config.treesitter.functions.wrapper.substitute_options
 		end,
 		nargs = "?",
+		range = true
 	})
 end
 
