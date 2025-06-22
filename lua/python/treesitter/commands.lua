@@ -88,18 +88,37 @@ local function ts_toggle_enumerate()
 	end
 end
 
+local function get_cursor()
+	local cursor = vim.api.nvim_win_get_cursor(0)
+	return { row = cursor[1], col = cursor[2] }
+end
+
+local function get_visual_selection()
+	local vpos = vim.fn.getpos("v")
+	local begin_pos = { row = vpos[2], col = vpos[3] - 1 }
+	local end_pos = get_cursor()
+	if (
+				(begin_pos.row < end_pos.row) or
+				(
+					(begin_pos.row == end_pos.row) and (begin_pos.col <= end_pos.col)
+				)
+			)
+	then
+		return { start = begin_pos, ending = end_pos }
+	else
+		return { start = end_pos, ending = begin_pos }
+	end
+end
+
 ---@param subtitute_option nil|string if string then use as substitute
 ---	otherwise select from config
 local function visual_wrap_subsitute_options(subtitute_option)
 	-- TODO get selection of actual selected text
-	local start_pos = vim.fn.getpos("'<")
-	local end_pos = vim.fn.getpos("'>")
-	local start_row = start_pos[2] - 1
-	local start_col = start_pos[3] - 1
-	local end_row = end_pos[2] - 1
-	local end_col = end_pos[3]
-	vim.print(start_row, start_col, end_row, end_col)
-	local selected_buf_text = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+	local positions = get_visual_selection()
+	local start_pos = positions.start
+	local end_pos = positions.ending
+	vim.print(start_pos, end_pos)
+	local selected_buf_text = vim.api.nvim_buf_get_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, {})
 	vim.print(selected_buf_text)
 	local node_text = vim.fn.join(selected_buf_text, "\n")
 	vim.print(node_text)
@@ -129,6 +148,7 @@ end
 local function ts_wrap_at_cursor(subtitute_option)
 	local m = vim.fn.visualmode() -- detect current mode
 
+	vim.print(m)
 	if m == 'v' or m == 'V' or m == '\22' then
 		visual_wrap_subsitute_options()
 		return
