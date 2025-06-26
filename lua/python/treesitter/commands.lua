@@ -93,21 +93,18 @@ local function get_cursor()
 	return { row = cursor[1], col = cursor[2] }
 end
 
+local function get_visual_from_command()
+	local start_pos = vim.fn.getpos("'<")
+	local end_pos = vim.fn.getpos("'>")
+	vim.print("get_visual_from_command", start_pos, end_pos)
+	return { start = { row = start_pos[2], col = start_pos[3] }, ending = { row = end_pos[2], col = end_pos[3] } }
+end
+
 local function get_visual_selection()
-	local vpos = vim.fn.getpos("v")
-	local begin_pos = { row = vpos[2], col = vpos[3] - 1 }
-	local end_pos = get_cursor()
-	if (
-				(begin_pos.row < end_pos.row) or
-				(
-					(begin_pos.row == end_pos.row) and (begin_pos.col <= end_pos.col)
-				)
-			)
-	then
-		return { start = begin_pos, ending = end_pos }
-	else
-		return { start = end_pos, ending = begin_pos }
-	end
+	local start_pos = vim.fn.getpos(".")
+	local end_pos = vim.fn.getpos("v")
+	vim.print("get_visual_selection", start_pos, end_pos)
+	return { start = { row = start_pos[2], col = start_pos[3] }, ending = { row = end_pos[2], col = end_pos[3] } }
 end
 
 ---@param subtitute_option nil|string if string then use as substitute
@@ -115,6 +112,9 @@ end
 local function visual_wrap_subsitute_options(subtitute_option)
 	-- TODO get selection of actual selected text
 	local positions = get_visual_selection()
+	local postitions_2 = get_visual_from_command()
+	vim.print("positions", positions)
+	vim.print("postitions_2", postitions_2)
 	local start_pos = positions.start
 	local end_pos = positions.ending
 	vim.print(start_pos, end_pos)
