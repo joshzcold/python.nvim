@@ -97,29 +97,25 @@ end
 local function get_visual_selection()
 	local start_pos = vim.fn.getpos("'<")
 	local end_pos = vim.fn.getpos("'>")
-	vim.print("get_visual_from_command", start_pos, end_pos)
-	return { start = { row = start_pos[2], col = start_pos[3] }, ending = { row = end_pos[2], col = end_pos[3] } }
+	return { start = { row = start_pos[2] - 1, col = start_pos[3] - 1 }, ending = { row = end_pos[2] - 1, col = end_pos[3]  } }
 end
 
 ---@param subtitute_option nil|string if string then use as substitute
+---@param line_mode bool if visual mode is line mode
 ---	otherwise select from config
-local function visual_wrap_subsitute_options(subtitute_option)
+local function visual_wrap_subsitute_options(subtitute_option, line_mode)
 	-- TODO get selection of actual selected text
 	local positions = get_visual_selection()
-	vim.print("positions", positions)
 	local start_pos = positions.start
 	local end_pos = positions.ending
-	vim.print(start_pos, end_pos)
 	local selected_buf_text = vim.api.nvim_buf_get_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, {})
-	vim.print(selected_buf_text)
 	local node_text = vim.fn.join(selected_buf_text, "\n")
-	vim.print(node_text)
 	local new_text
 
 	if subtitute_option and subtitute_option ~= "" then
 		new_text = subtitute_option:format(node_text)
 		local lines = vim.split(new_text, "\n")
-		vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, lines)
+		vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
 		return
 	end
 	vim.ui.select(config.treesitter.functions.wrapper.substitute_options, {
@@ -130,7 +126,7 @@ local function visual_wrap_subsitute_options(subtitute_option)
 		end
 		new_text = selection:format(node_text)
 		local lines = vim.split(new_text, "\n")
-		vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, lines)
+		vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
 		return
 	end)
 end
@@ -141,8 +137,11 @@ local function ts_wrap_at_cursor(subtitute_option)
 	local m = vim.fn.visualmode() -- detect current mode
 
 	vim.print(m)
-	if m == 'v' or m == 'V' or m == '\22' then
-		visual_wrap_subsitute_options()
+	if m == 'v' or m == '\22' then
+		visual_wrap_subsitute_options(subtitute_option)
+		return
+	elseif m == 'V' then
+		visual_wrap_subsitute_options(subtitute_option, true)
 		return
 	end
 
