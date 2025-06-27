@@ -95,16 +95,37 @@ end
 
 
 local function get_visual_selection()
-	local start_pos = vim.fn.getpos("'<")
-	local end_pos = vim.fn.getpos("'>")
-	return { start = { row = start_pos[2] - 1, col = start_pos[3] - 1 }, ending = { row = end_pos[2] - 1, col = end_pos[3]  } }
+	local _, start_row, start_col, _ = unpack(vim.fn.getpos("'<"))
+	local _, end_row, end_col, _ = unpack(vim.fn.getpos("'>"))
+	local cursor = vim.api.nvim_win_get_cursor(0)
+
+
+	start_row = start_row -1
+	start_col = start_col -1
+	end_row = end_row -1
+	end_col = end_col
+
+
+	local result = {
+		start = {
+			row = start_row,
+			col = start_col 
+		},
+		ending = {
+			row = end_row,
+			col = end_col
+		} 
+	}
+	return  result
 end
 
 ---@param subtitute_option nil|string if string then use as substitute
 ---@param line_mode bool if visual mode is line mode
 ---	otherwise select from config
 local function visual_wrap_subsitute_options(subtitute_option, line_mode)
-	-- TODO get selection of actual selected text
+
+	-- TODO dont duplicate logic with select and not select
+	
 	local positions = get_visual_selection()
 	local start_pos = positions.start
 	local end_pos = positions.ending
@@ -115,7 +136,13 @@ local function visual_wrap_subsitute_options(subtitute_option, line_mode)
 	if subtitute_option and subtitute_option ~= "" then
 		new_text = subtitute_option:format(node_text)
 		local lines = vim.split(new_text, "\n")
-		vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
+		if end_pos.col == 2147483647 then
+			end_pos.col = -1
+		end
+		local status, _ = pcall(vim.api.nvim_buf_set_text, 0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
+		if not status then
+			vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col -1, lines)
+		end
 		return
 	end
 	vim.ui.select(config.treesitter.functions.wrapper.substitute_options, {
@@ -126,7 +153,14 @@ local function visual_wrap_subsitute_options(subtitute_option, line_mode)
 		end
 		new_text = selection:format(node_text)
 		local lines = vim.split(new_text, "\n")
-		vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
+
+		if end_pos.col == 2147483647 then
+			end_pos.col = -1
+		end
+		local status, _ = pcall(vim.api.nvim_buf_set_text, 0, start_pos.row, start_pos.col, end_pos.row, end_pos.col, lines)
+		if not status then
+			vim.api.nvim_buf_set_text(0, start_pos.row, start_pos.col, end_pos.row, end_pos.col -1, lines)
+		end
 		return
 	end)
 end
