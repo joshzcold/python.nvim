@@ -227,6 +227,8 @@ return {
 | `none`         | `:PythonHatchListPython`    | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/) |
 | `none`         | `:PythonHatchInstallPython` | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)    |
 | `none`         | `:PythonHatchDeletePython`  | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)      |
+| `none`         | `:PythonUVInstallPython`    | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)            |
+| `none`         | `:PythonUVDeletePython`     | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)            |
 
 ## Supported python package managers
 
@@ -244,9 +246,9 @@ return {
 
 - [x] Linux
 
-- [X] MacOS (Mostly should work)
+- [x] MacOS (Mostly should work)
 
-  - [X] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
+  - [x] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
 
 - [ ] Windows (Un tested)
   - [ ] Most likely spots where we are mixing up `/` vs `\` in paths

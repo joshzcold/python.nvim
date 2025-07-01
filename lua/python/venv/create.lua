@@ -287,6 +287,22 @@ local function hatch_interpreters()
   return {}
 end
 
+---
+---@return table found_uv_pythons list of python interpreters found by uv
+local function uv_interpreters()
+  if vim.fn.executable("uv") == 1 then
+    local uv_python_paths = vim.fn.expand("~/.local/share/uv/python")
+    if vim.fn.isdirectory(uv_python_paths) then
+      local found_uv_pythons = vim.fn.globpath(uv_python_paths, vim.fs.joinpath("**", "bin", "python3.*"), false,
+        true)
+      if found_uv_pythons then
+        return found_uv_pythons
+      end
+    end
+  end
+  return {}
+end
+
 ---@return table<string> list of potential python interpreters to use
 local function python_interpreters()
   -- TODO detect python interpreters from windows
@@ -299,6 +315,12 @@ local function python_interpreters()
   if IS_MACOS then
     local homebrew_path = vim.fn.globpath("/opt/homebrew/bin/", 'python3.*', false, true)
     for _, p in pairs(homebrew_path) do
+      table.insert(pythons, 1, p)
+    end
+  end
+  local found_uv = uv_interpreters()
+  if found_uv then
+    for _, p in pairs(found_uv) do
       table.insert(pythons, 1, p)
     end
   end
