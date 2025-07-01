@@ -3,7 +3,7 @@
 Python Tools for Neovim
 
 > [!WARNING]
-> This plugin is currently in alpha status and can be subject to breaking changes
+> This plugin is currently in beta status and can be subject to breaking changes
 > Please file issues when found and feel free to contribute
 
 https://github.com/user-attachments/assets/025f8475-e946-4875-bc91-53508ea5d3fa
@@ -85,6 +85,22 @@ return {
         enabled_text_actions = {
             "f-strings" -- When inserting {}, put in an f-string
         },
+        -- options with treesitter
+        treesitter = {
+            functions = {
+            -- Wrap treesitter identifier under cursor using substitute_options
+                wrapper = {
+                    -- Substitute options for PythonTSWrapWithFunc
+                    substitute_options = {
+                    "np.array(%s)",
+                    },
+                    -- Look for tree-sitter types to wrap
+                    find_types = {
+                    "tuple", "string", "true", "false", "list", "call", "parenthesized_expression"
+                    }
+                }
+            }
+        },
         -- Adjust when enabled_text_actions is triggered
         enabled_text_actions_autocmd_events = { "InsertLeave" },
 
@@ -92,24 +108,26 @@ return {
         keymaps = {
             -- following nvim_set_keymap() mode, lhs, rhs, opts
             mappings = {
-            ['<leader>pv'] = { "n", "<cmd>PythonVEnvPick<cr>", { desc = "python.nvim: pick venv" } },
-            ['<leader>pi'] = { "n", "<cmd>PythonVEnvInstall<cr>", { desc = "python.nvim: python venv install" } },
-            ['<leader>pd'] = { "n", "<cmd>PythonDap<cr>", { desc = "python.nvim: python run debug program" } },
+                ['<leader>pv'] = { "n", "<cmd>PythonVEnvPick<cr>", { desc = "python.nvim: pick venv" } },
+                ['<leader>pi'] = { "n", "<cmd>PythonVEnvInstall<cr>", { desc = "python.nvim: python venv install" } },
+                ['<leader>pd'] = { "n", "<cmd>PythonDap<cr>", { desc = "python.nvim: python run debug program" } },
 
-            -- Test Actions
-            ['<leader>ptt'] = { "n", "<cmd>PythonTest<cr>", { desc = "python.nvim: python run test suite" } },
-            ['<leader>ptm'] = { "n", "<cmd>PythonTestMethod<cr>", { desc = "python.nvim: python run test method" } },
-            ['<leader>ptf'] = { "n", "<cmd>PythonTestFile<cr>", { desc = "python.nvim: python run test file" } },
-            ['<leader>ptdd'] = { "n", "<cmd>PythonDebugTest<cr>", { desc = "python.nvim: run test suite in debug mode." } },
-            ['<leader>ptdm'] = { "n", "<cmd>PythonDebugTestMethod<cr>", { desc = "python.nvim: run test method in debug mode." } },
-            ['<leader>ptdf'] = { "n", "<cmd>PythonDebugTestFile<cr>", { desc = "python.nvim: run test file in debug mode." } },
+                -- Test Actions
+                ['<leader>ptt'] = { "n", "<cmd>PythonTest<cr>", { desc = "python.nvim: python run test suite" } },
+                ['<leader>ptm'] = { "n", "<cmd>PythonTestMethod<cr>", { desc = "python.nvim: python run test method" } },
+                ['<leader>ptf'] = { "n", "<cmd>PythonTestFile<cr>", { desc = "python.nvim: python run test file" } },
+                ['<leader>ptdd'] = { "n", "<cmd>PythonDebugTest<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+                ['<leader>ptdm'] = { "n", "<cmd>PythonDebugTestMethod<cr>", { desc = "python.nvim: run test method in debug mode." } },
+                ['<leader>ptdf'] = { "n", "<cmd>PythonDebugTestFile<cr>", { desc = "python.nvim: run test file in debug mode." } },
 
-            -- VEnv Actions
-            ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
-            ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
+                -- VEnv Actions
+                ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
+                ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
 
-            -- Language Actions
-            ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+                -- Language Actions
+                ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+                ['<leader>ppw'] = { "n", "<cmd>PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
+                ['<leader>pw'] = { "v", ":PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
             }
         },
         -- Settings regarding ui handling
@@ -170,25 +188,32 @@ return {
 
   > See `test` in config and `:PythonTest*` commands
 
-- [ ] Treesitter integration
-  - [ ] Functions utilizing treesitter for helpful code actions
-    - [x] Auto insert fstrings while typing `{}`
-      > See `enabled_text_actions` in config
-    - [x] Toggle a list into an `enumerate()` list with index
-      > Try `:PythonTSToggleEnumerate` on a `for x in list` list
+- Treesitter integration
+- Functions utilizing treesitter for helpful code actions
+- [x] Auto insert fstrings while typing `{}`
+  > See `enabled_text_actions` in config
+- [x] Toggle a list into an `enumerate()` list with index
+  > Try `:PythonTSToggleEnumerate` on a `for x in list` list
+- [x] Wrap treesitter objects with a pattern.
+  > Try `:PythonTSWrapWithFunc` on a list or tuple. Check config for options
+  > Can turn `[1, 2, 3]` -> `np.array([1, 2, 3])`
+  > Supply a pattern to immediately wrap like `:PythonTSWrapWithFunc np.array(%s)`
+  > Select in visual mode and execute `:'<'>PythonTSWrapWithFunc`
 
 ## Commands
 
 ## Main Commands
 
-| Default KeyMap | Command                    | Functionality                                                                        |
-| -------------- | -------------------------- | ------------------------------------------------------------------------------------ |
-| `<leader>pi`   | `:PythonVEnvInstall`       | Create a venv and install dependencies if a supported python package format is found |
-| `<leader>pd`   | `:PythonDap`               | Create and save a new Dap configuration                                              |
-| `<leader>ptt`  | `:PythonTest`              | Run Suite of tests with `neotest`                                                    |
-| `<leader>ptm`  | `:PythonTestMethod`        | Run test function/method with `neotest`                                              |
-| `<leader>ptf`  | `:PythonTestFile`          | Run test file with `neotest`                                                         |
-| `<leader>ppe`  | `:PythonTSToggleEnumerate` | Turn a regular list into `enumerate()` list and back                                 |
+| Default KeyMap           | Command                    | Functionality                                                                        |
+| ------------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
+| `<leader>pi`             | `:PythonVEnvInstall`       | Create a venv and install dependencies if a supported python package format is found |
+| `<leader>pd`             | `:PythonDap`               | Create and save a new Dap configuration                                              |
+| `<leader>ptt`            | `:PythonTest`              | Run Suite of tests with `neotest`                                                    |
+| `<leader>ptm`            | `:PythonTestMethod`        | Run test function/method with `neotest`                                              |
+| `<leader>ptf`            | `:PythonTestFile`          | Run test file with `neotest`                                                         |
+| `<leader>ppe`            | `:PythonTSToggleEnumerate` | Turn a regular list into `enumerate()` list and back                                 |
+| `<leader>ppw`            | `:PythonTSWrapWithFunc`    | Wrap treesitter indentifiers in a pattern for quick injection.                       |
+| visual mode `<leader>pw` | `:PythonTSWrapWithFunc`    | Wrap treesitter indentifiers in visual mode                                          |
 
 ## Advanced Commands
 
@@ -219,9 +244,9 @@ return {
 
 - [x] Linux
 
-- [ ] MacOS (Mostly should work)
+- [X] MacOS (Mostly should work)
 
-  - [ ] I am detecting python interpreters in homebrew. Does the community use other methods of installing python?
+  - [X] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
 
 - [ ] Windows (Un tested)
   - [ ] Most likely spots where we are mixing up `/` vs `\` in paths
