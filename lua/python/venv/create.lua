@@ -1,3 +1,5 @@
+local M = {}
+
 local config = require('python.config')
 local state = require("python.state")
 local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
@@ -18,12 +20,12 @@ local function python_set_venv(venv_path, venv_name, venv_source)
     if current_venv then
       current_venv_name = current_venv.name
     end
-    if vim.fs.basename(venv_path) ~= current_venv_name then
+    if vim.fs.basename(venv_path) and current_venv_name ~= venv_name then
       if not venv_source then
         venv_source = "venv"
       end
       python_venv.set_venv_path({ path = venv_path, name = venv_name, source = venv_source })
-      vim.notify_once("python.nvim: set venv at: " .. venv_path)
+      vim.notify("python.nvim: set venv at: " .. venv_path)
       lsp.notify_workspace_did_change()
     end
   end

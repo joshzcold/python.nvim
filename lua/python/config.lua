@@ -25,7 +25,7 @@ local defaults = {
   auto_venv_lsp_attach_patterns = { "*.py" },
 
   -- Filetypes to activate commands for python.nvim
-  command_setup_filetypes = { "python" },
+  command_setup_buf_pattern = "*.py" ,
 
   -- Load python.nvim python snippets
   python_lua_snippets = false,

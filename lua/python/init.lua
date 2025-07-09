@@ -14,7 +14,7 @@ function M.setup(opts)
     desc = "python.nvim: Actions after lsp is ready. Attach venv",
     group = id,
     callback = function(args)
-      local create = require("python.venv.create")
+      local venv = require("python.venv")
       local lsp = require("python.lsp.commands")
 
       if not args.data.client_id then
@@ -30,17 +30,17 @@ function M.setup(opts)
       lsp.load_commands()
       -- TODO: should I put this in an autocmd that only runs once instead of for
       -- each lsp server?
-      create.detect_venv(true, true)
+      -- venv.load_existing_venv()
     end,
   })
 
   -- Load up commands for users
-  vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = config.command_setup_filetypes,
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = config.command_setup_buf_pattern,
     desc = "python.nvim: Loading commands for python",
     group = id,
     callback = function()
-      local venv = require("python.venv")
+      local create = require("python.venv.create")
       local commands = require("python.commands")
       local dap = require("python.dap")
       local snip = require("python.snip")
@@ -53,7 +53,7 @@ function M.setup(opts)
       snip.load_snippets()
       keymap.load_keymaps()
       hatch.load_commands()
-      venv.load_existing_venv()
+      create.detect_venv(true, true)
     end,
   })
   vim.api.nvim_create_autocmd({ "BufEnter" }, {

@@ -159,6 +159,7 @@ local has_high_priority_in_path = function(first, second)
   return false
 end
 
+-- TODO pull this venv from state if exising else fallback to environment
 M.load_existing_venv = function()
   local venv
 
