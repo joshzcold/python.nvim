@@ -432,6 +432,29 @@ local snippets = {
     ),
     always
   ),
+  ls.s(
+    {
+      trig = "#!/usr/bin/env uv",
+      name = "UV script shebang with dependencies",
+      dscr = "python.nvim: UV script shebang with dependency definition.",
+    },
+    fmt([[
+        #!/usr/bin/env -S uv run --script
+        #
+        # /// script
+        # requires-python = ">=3.12"
+        # dependencies = [
+        #   "{}"
+        # ]
+        # ///
+      ]],
+      {
+        ls.i(1, "requests"),
+      },
+      {}
+    ),
+    always
+  ),
 }
 
 function M.load_snippets()

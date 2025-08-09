@@ -234,7 +234,8 @@ return {
 
 | Manager | Install File         | Install Method                                                                               |
 | ------- | -------------------- | -------------------------------------------------------------------------------------------- |
-| uv      | uv.lock              | `uv sync`                                                                                    |
+| uv      | uv.lock              | `uv sync --active --frozen`                                                                  |
+| uv      | `/// script` block   | `uv sync --sync --script % --active`                                                         |
 | pdm     | pdm.lock             | `pdm sync`                                                                                   |
 | poetry  | poetry.lock          | `poetry sync --no-root`                                                                      |
 | pip     | pyproject.toml       | `pip install .`                                                                              |
