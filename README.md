@@ -20,6 +20,15 @@ return {
   ---@module 'python'
   {
     "joshzcold/python.nvim",
+    dependencies = {
+        { "mfussenegger/nvim-dap" },
+        { "mfussenegger/nvim-dap-python" },
+        { "neovim/nvim-lspconfig" },
+        { "MunifTanjim/nui.nvim" },
+        { "L3MON4D3/LuaSnip" },
+        { "nvim-neotest/neotest" },
+        { "nvim-neotest/neotest-python" },
+    },
     ---@type python.Config
     opts = { ---@diagnostic disable-line: missing-fields`
     }
@@ -34,12 +43,39 @@ return {
   ---@module 'python'
   {
     "joshzcold/python.nvim",
+    dependencies = {
+        { "mfussenegger/nvim-dap" },
+        { "mfussenegger/nvim-dap-python" },
+        { "neovim/nvim-lspconfig" },
+        { "MunifTanjim/nui.nvim" },
+        { "L3MON4D3/LuaSnip" },
+        { "nvim-neotest/neotest" },
+        { "nvim-neotest/neotest-python" },
+    },
     ---@type python.Config
     opts = { ---@diagnostic disable-line: missing-fields`
         python_lua_snippets = true
     },
   }
 }
+```
+
+</details>
+
+<details>
+<summary>vim.pack</summary>
+
+**Example Config**
+
+```lua
+vim.pack.add("https://github.com/joshzcold/python.nvim")
+vim.pack.add("https://github.com/mfussenegger/nvim-dap")
+vim.pack.add("https://github.com/mfussenegger/nvim-dap-python")
+vim.pack.add("https://github.com/neovim/nvim-lspconfig")
+vim.pack.add("https://github.com/MunifTanjim/nui.nvim")
+vim.pack.add("https://github.com/L3MON4D3/LuaSnip")
+vim.pack.add("https://github.com/nvim-neotest/neotest")
+vim.pack.add("https://github.com/nvim-neotest/neotest-python")
 ```
 
 </details>
