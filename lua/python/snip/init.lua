@@ -461,7 +461,10 @@ function M.load_snippets()
   if not config.python_lua_snippets then
     return
   end
-  ls.add_snippets("python", snippets)
+  if vim.g._python_nvim_snippets_loaded == nil then
+    ls.add_snippets("python", snippets)
+  end
+  vim.g._python_nvim_snippets_loaded = true
 end
 
 return setmetatable(M, {
