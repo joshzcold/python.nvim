@@ -616,7 +616,7 @@ function M.detect_venv_dependency_file(notify, cwd_allowed)
     if check_type == "file" then
       found = search_up(search)
     elseif check_type == "pattern" then
-      if vim.fn.getline(vim.fn.search(search)) then
+      if vim.fn.getline(vim.fn.search(search)) ~= "" then
         found = vim.api.nvim_buf_get_name(0)
       end
     else
