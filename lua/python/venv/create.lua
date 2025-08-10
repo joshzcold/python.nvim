@@ -62,7 +62,7 @@ end
 ---@param callback function
 ---@param script boolean are we installing from a script definition
 local function uv_sync(uv_lock_path, venv_dir, callback, script)
-  vim.schedule(function() 
+  vim.schedule(function()
     if vim.fn.executable("uv") == 0 then
       vim.notify_once(
         ("python.nvim: 'uv' application not found please install: %s"):format("https://github.com/astral-sh/uv"),
@@ -424,43 +424,45 @@ local function venv_install_file(detect)
   if detect_val.venv_path == nil or detect_val.python_interpreter == nil then
     local default_input = config.auto_create_venv_path(new_parent_dir)
     vim.schedule(function()
-      vim.ui.input({ prompt = description .. "\nInput new venv path: ", default = default_input }, function(venv_path_user_input)
-        if venv_path_user_input == nil then
-          vim.notify("python.nvim: Skipping venv creation.")
-          return
-        end
-        local wanted_dir = vim.fs.dirname(venv_path_user_input)
-        if vim.fn.isdirectory(wanted_dir) == 0 then
-          vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
-            vim.log.levels.ERROR)
-          return
-        end
-        vim.schedule(function()
-          vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter: ' }, function(python_interpreter_user_input)
-              if not python_interpreter_user_input then
-                vim.notify("python.nvim: skipping, no python selected.")
-                return
-              end
-              create_venv_with_python(venv_path_user_input, python_interpreter_user_input, function()
-                install_function(install_file, venv_path_user_input, function()
-                  local val = {
-                    python_interpreter = python_interpreter_user_input,
-                    venv_path = venv_path_user_input,
-                    install_method = detect_val.install_method,
-                    install_file = install_file,
-                    source = "venv"
-                  }
-                  local python_state = state.State()
+      vim.ui.input({ prompt = description .. "\nInput new venv path: ", default = default_input },
+        function(venv_path_user_input)
+          if venv_path_user_input == nil then
+            vim.notify("python.nvim: Skipping venv creation.")
+            return
+          end
+          local wanted_dir = vim.fs.dirname(venv_path_user_input)
+          if vim.fn.isdirectory(wanted_dir) == 0 then
+            vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
+              vim.log.levels.ERROR)
+            return
+          end
+          vim.schedule(function()
+            vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter: ' },
+              function(python_interpreter_user_input)
+                if not python_interpreter_user_input then
+                  vim.notify("python.nvim: skipping, no python selected.")
+                  return
+                end
+                create_venv_with_python(venv_path_user_input, python_interpreter_user_input, function()
+                  install_function(install_file, venv_path_user_input, function()
+                    local val = {
+                      python_interpreter = python_interpreter_user_input,
+                      venv_path = venv_path_user_input,
+                      install_method = detect_val.install_method,
+                      install_file = install_file,
+                      source = "venv"
+                    }
+                    local python_state = state.State()
 
-                  local venv_name = vim.fs.basename(vim.fs.dirname(install_file))
-                  python_set_venv(val.venv_path, venv_name)
-                  python_state.venvs[key] = val
-                  state.save(python_state)
+                    local venv_name = vim.fs.basename(vim.fs.dirname(install_file))
+                    python_set_venv(val.venv_path, venv_name)
+                    python_state.venvs[key] = val
+                    state.save(python_state)
+                  end)
                 end)
               end)
-            end)
+          end)
         end)
-      end)
     end)
     return
   end
@@ -618,7 +620,7 @@ function M.detect_venv_dependency_file(notify, cwd_allowed)
     if check_type == "file" then
       found = search_up(search)
     elseif check_type == "pattern" then
-      if vim.fn.getline(vim.fn.search(search)) then
+      if vim.fn.search(search) ~= 0 then
         found = vim.api.nvim_buf_get_name(0)
       end
     else
