@@ -12,3 +12,5 @@
 import boto3
 
 boto3.DEFAULT_SESSION
+
+print("WOO HOO!")
