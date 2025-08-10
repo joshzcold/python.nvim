@@ -170,7 +170,6 @@ end
 local function ts_wrap_at_cursor(subtitute_option)
 	local m = vim.fn.visualmode() -- detect current mode
 
-	vim.print(m)
 	if m == 'v' or m == '\22' then
 		visual_wrap_subsitute_options(subtitute_option)
 		return
