@@ -104,7 +104,6 @@ end
 --- Execute uv directly with arguments passed by user.
 ---@param opts vim.api.keyset.create_user_command.command_args
 local function uv(opts)
-  vim.print(opts)
   local args = {}
 
   for _, fa in pairs(opts.fargs) do
@@ -117,7 +116,6 @@ local function uv(opts)
   end
   local cmd = { 'uv', unpack(args) }
   vim.schedule(function()
-    vim.print(cmd)
     vim.system(
       cmd,
       {

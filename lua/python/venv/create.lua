@@ -69,7 +69,6 @@ local function uv_sync(uv_lock_path, venv_dir, callback, script)
     end
     vim.notify_once('python.nvim: starting uv sync at: ' .. uv_lock_path, vim.log.levels.INFO)
     local dir_name = vim.fs.dirname(uv_lock_path)
-    vim.print(dir_name)
     local cmd = {
       'uv', 'sync', "--active", "--frozen"
     }
@@ -394,7 +393,6 @@ end
 local function create_venv_with_python(venv_path, python_interpreter, callback)
   vim.notify_once('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
   local cmd = { python_interpreter, '-m', 'venv', venv_path }
-  vim.print(cmd)
   vim.system(
     cmd,
     {},

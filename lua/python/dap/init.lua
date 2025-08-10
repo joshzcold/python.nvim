@@ -32,7 +32,7 @@ function M.prepare_debugpy(callback)
           return
         end
         vim.notify_once(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
-        callback(venv)
+        vim.schedule(function() callback(venv) end)
       end
     )
   end)
@@ -103,6 +103,7 @@ local function create_dap_config(cwd, venv, python_state)
     state.save(python_state)
     vim.schedule(function()
       M.prepare_debugpy(function()
+        vim.notify("python.nvim dap config: " .. vim.inspect(config))
         dap.run(config)
       end)
     end)
