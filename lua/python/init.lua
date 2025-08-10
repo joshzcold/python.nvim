@@ -28,19 +28,17 @@ function M.setup(opts)
       end
 
       lsp.load_commands()
-      -- TODO: should I put this in an autocmd that only runs once instead of for
-      -- each lsp server?
       create.detect_venv_dependency_file(true, true)
     end,
   })
 
   -- Load up commands for users
-  vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = config.command_setup_filetypes,
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = config.command_setup_buf_pattern,
     desc = "python.nvim: Loading commands for python",
     group = id,
     callback = function()
-      local venv = require("python.venv")
+      local create = require("python.venv.create")
       local commands = require("python.commands")
       local dap = require("python.dap")
       local snip = require("python.snip")
@@ -48,6 +46,7 @@ function M.setup(opts)
       local keymap = require("python.keymap")
       local hatch = require("python.hatch.commands")
       local uv = require("python.uv.commands")
+      local venv = require("python.venv")
       commands.load_commands()
       dap.load_commands()
       ts.load_commands()
