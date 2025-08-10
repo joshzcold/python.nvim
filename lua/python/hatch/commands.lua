@@ -145,7 +145,6 @@ function M.load_commands()
       return
     end
     local versions = hatch_installed_versions()
-    vim.print(versions)
   end, { desc = "python.nvim: list pythons installed by hatch."})
   vim.api.nvim_create_user_command("PythonHatchDeletePython", function()
     if not check_hatch() then

@@ -217,22 +217,26 @@ return {
 
 ## Advanced Commands
 
-| Default KeyMap | Command                     | Functionality                                                                |
-| -------------- | --------------------------- | ---------------------------------------------------------------------------- |
-| `<leader>ped`  | `:PythonVEnvDeleteSelect`   | Select a venv to delete from `python.nvim` state                             |
-| `<leader>peD`  | `:PythonVEnvDelete`         | Delete current selected venv in project in `python.nvim` state               |
-| `<leader>ptdd` | `:PythonDebugTest`          | Run Suite of tests with `neotest` in `dap` mode with `dap-python`            |
-| `<leader>ptdm` | `:PythonDebugTestMethod`    | Run test function/method with `neotest` in `dap` mode with `dap-python`      |
-| `<leader>ptdf` | `:PythonDebugTestFile`      | Run test file with `neotest` in `dap` mode with `dap-python`                 |
-| `none`         | `:PythonHatchListPython`    | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/) |
-| `none`         | `:PythonHatchInstallPython` | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)    |
-| `none`         | `:PythonHatchDeletePython`  | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)      |
+| Default KeyMap | Command                     | Functionality                                                                          |
+| -------------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| `<leader>ped`  | `:PythonVEnvDeleteSelect`   | Select a venv to delete from `python.nvim` state                                       |
+| `<leader>peD`  | `:PythonVEnvDelete`         | Delete current selected venv in project in `python.nvim` state                         |
+| `<leader>ptdd` | `:PythonDebugTest`          | Run Suite of tests with `neotest` in `dap` mode with `dap-python`                      |
+| `<leader>ptdm` | `:PythonDebugTestMethod`    | Run test function/method with `neotest` in `dap` mode with `dap-python`                |
+| `<leader>ptdf` | `:PythonDebugTestFile`      | Run test file with `neotest` in `dap` mode with `dap-python`                           |
+| `none`         | `:PythonHatchListPython`    | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/)           |
+| `none`         | `:PythonHatchInstallPython` | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)              |
+| `none`         | `:PythonHatchDeletePython`  | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)                |
+| `none`         | `:PythonUVInstallPython`    | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
+| `none`         | `:PythonUVDeletePython`     | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
+| `none`         | `:UV <command>`             | Pass through commands to [uv](https://docs.astral.sh/uv/) with command line completion |
 
 ## Supported python package managers
 
 | Manager | Install File         | Install Method                                                                               |
 | ------- | -------------------- | -------------------------------------------------------------------------------------------- |
-| uv      | uv.lock              | `uv sync`                                                                                    |
+| uv      | uv.lock              | `uv sync --active --frozen`                                                                  |
+| uv      | `/// script` block   | `uv sync --sync --script % --active`                                                         |
 | pdm     | pdm.lock             | `pdm sync`                                                                                   |
 | poetry  | poetry.lock          | `poetry sync --no-root`                                                                      |
 | pip     | pyproject.toml       | `pip install .`                                                                              |
@@ -244,9 +248,9 @@ return {
 
 - [x] Linux
 
-- [X] MacOS (Mostly should work)
+- [x] MacOS (Mostly should work)
 
-  - [X] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
+  - [x] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
 
 - [ ] Windows (Un tested)
   - [ ] Most likely spots where we are mixing up `/` vs `\` in paths

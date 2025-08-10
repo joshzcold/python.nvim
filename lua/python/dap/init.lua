@@ -23,17 +23,19 @@ function M.prepare_debugpy(callback)
   if not venv then
     return
   end
-  vim.system(
-    { vim.fs.joinpath(venv.path, "bin", "pip"), "install", "debugpy" },
-    {}, function(obj)
-      if obj.code ~= 0 then
-        vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
-        return
+  vim.schedule(function()
+    vim.system(
+      { vim.fs.joinpath(venv.path, "bin", "pip"), "install", "debugpy" },
+      {}, function(obj)
+        if obj.code ~= 0 then
+          vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+          return
+        end
+        vim.notify_once(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
+        vim.schedule(function() callback(venv) end)
       end
-      vim.notify_once(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
-      callback(venv)
-    end
-  )
+    )
+  end)
 end
 
 --- Interactively create dap configuration
@@ -46,7 +48,7 @@ local function create_dap_config(cwd, venv, python_state)
     prompt = "python.nvim: Select new dap style configuration: "
   }, function(choice)
     if not choice then
-        return
+      return
     end
     local config = {
       type = 'python',
@@ -61,24 +63,50 @@ local function create_dap_config(cwd, venv, python_state)
         prompt = "Program Arguments: "
       }, function(input)
         local args = vim.split(input, " ")
+        local _args = {}
+        for _, arg in pairs(args) do
+          if arg == "%" then
+            table.insert(_args, vim.fn.expand("%"))
+            goto continue
+          end
+          table.insert(_args, arg)
+
+          ::continue::
+        end
         config['args'] = args
       end)
     elseif choice == "program:args" then
       vim.ui.input({
-        prompt = "Program: "
+        prompt = "Program with arguments: "
       }, function(program)
-        vim.ui.input({
-          prompt = "Program Arguments: "
-        }, function(input)
-          local args = vim.split(input, " ")
-          config['program'] = program
-          config['args'] = args
-        end)
+        local args = vim.split(program, " ")
+        config['program'] = args[1]
+        local _args = {}
+
+        for idx, arg in pairs(args) do
+          if idx == 1 then
+            goto continue
+          end
+
+          if arg == "%" then
+            table.insert(_args, vim.fn.expand("%"))
+            goto continue
+          end
+          table.insert(_args, arg)
+
+          ::continue::
+        end
+        config['args'] = _args
       end)
     end
     python_state.dap[cwd] = config
     state.save(python_state)
-    dap.run(config)
+    vim.schedule(function()
+      M.prepare_debugpy(function()
+        vim.notify("python.nvim dap config: " .. vim.inspect(config))
+        dap.run(config)
+      end)
+    end)
   end)
 end
 
@@ -92,7 +120,7 @@ function M.load_commands()
         local python_state = state.State()
         local cwd = vim.fn.getcwd()
         if python_state.dap[cwd] == nil then
-            create_dap_config(cwd, venv, python_state)
+          create_dap_config(cwd, venv, python_state)
         else
           vim.ui.select({ "Yes", "Create New" }, {
             prompt = "Use this config?: " .. vim.inspect(python_state.dap[cwd])
