@@ -2,7 +2,7 @@ local ui = require("python.ui")
 local M = {}
 
 
-local function check_uv()
+function M.check_uv()
   if vim.fn.executable("uv") == 0 then
     return false
   end
@@ -189,33 +189,31 @@ local function uv_completion(arglead, cmdlin, cursorpos)
   return result
 end
 
-function M.load_commands()
-  if not check_uv() then
-    return
-  end
-  vim.api.nvim_create_user_command("PythonUVInstallPython", function()
-    if not check_uv() then
+function M.uv_delete_python()
+  local versions = uv_installed_versions()
+  vim.ui.select(versions, { prompt = "Select a python version to delete via uv: " }, function(selection)
+    if not selection then
       return
     end
-    local versions = uv_available_versions()
-    vim.ui.select(versions, { prompt = "Select a python version to install via uv: " }, function(selection)
-      if not selection then
-        return
-      end
-      uv_install_version(selection)
-    end)
-  end, { desc = "python.nvim: install a python version using uv." })
+    uv_delete_version(selection)
+  end)
+end
 
-  vim.api.nvim_create_user_command("PythonUVDeletePython", function()
-    local versions = uv_installed_versions()
-    vim.ui.select(versions, { prompt = "Select a python version to delete via uv: " }, function(selection)
-      if not selection then
-        return
-      end
-      uv_delete_version(selection)
-    end)
-  end, { desc = "python.nvim: install a python version using uv." })
+function M.uv_install_python()
+  local versions = uv_available_versions()
+  vim.ui.select(versions, { prompt = "Select a python version to install via uv: " }, function(selection)
+    if not selection then
+      return
+    end
+    uv_install_version(selection)
+  end)
+end
 
+function M.load_commands()
+  if not M.check_uv() then
+    return
+  end
+  -- Special user command to pass through uv commands
   vim.api.nvim_create_user_command("UV", function(opts)
     uv(opts)
   end, {

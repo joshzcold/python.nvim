@@ -10,6 +10,9 @@ def main():
 
     something = 3
 
+    for idx, i in enumerate(["foo"]):
+        print(i)
+
 
 
 if __name__ == "__main__":

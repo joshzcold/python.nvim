@@ -2,69 +2,28 @@
 
 local M = {}
 
-local function pyright_commands()
-  vim.api.nvim_create_user_command("PythonPyRightChangeTypeCheckingMode", function(opts)
-    local clients = vim.lsp.get_clients({
-      bufnr = vim.api.nvim_get_current_buf(),
-      name = "pyright",
-    })
-    for _, client in ipairs(clients) do
-      client.config.settings = vim.tbl_deep_extend("force", client.config.settings, {
-        pyright = {
-          analysis = {
-            typeCheckingMode = opts.args,
-          },
-        },
-      })
-      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
-    end
-  end, {
-    nargs = 1,
-    count = 1,
-    complete = function()
-      return { "off", "basic", "standard", "strict", "all" }
-    end,
-  })
-end
+--- Change the type checking mode of either basedpyright or pyright if found.
+---@param mode string type checking mode
+function M.pyright_change_type_checking(mode)
+  local check_clients = { "pyright", "basedpyright" }
 
-local function based_pyright_commands()
-  vim.api.nvim_create_user_command("PythonBasedPyRightChangeTypeCheckingMode", function(opts)
+  for _, client_name in pairs(check_clients) do
     local clients = vim.lsp.get_clients({
       bufnr = vim.api.nvim_get_current_buf(),
-      name = "basedpyright",
+      name = client_name,
     })
     for _, client in ipairs(clients) do
       client.config.settings = vim.tbl_deep_extend("force", client.config.settings, {
         basedpyright = {
           analysis = {
-            typeCheckingMode = opts.args,
+            typeCheckingMode = mode,
           },
         },
       })
-      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
-    end
-  end, {
-    nargs = 1,
-    count = 1,
-    complete = function()
-      return { "off", "basic", "standard", "strict", "all" }
-    end,
-  })
-end
+      local msg = ("python.nvim: Set type check mode: %s on lsp: %s"):format(mode, client_name)
+      vim.notify(msg)
 
---- Load specific commands if lsp servers are found
-function M.load_commands()
-  local clients = vim.lsp.get_clients()
-  if not clients then
-    return
-  end
-  ---@class vim.lsp.Client
-  for _, client in pairs(clients) do
-    if client.name == "basedpyright" then
-      based_pyright_commands()
-    end
-    if client.name == "pyright" then
-      pyright_commands()
+      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
     end
   end
 end

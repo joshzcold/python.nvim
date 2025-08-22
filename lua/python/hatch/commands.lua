@@ -2,7 +2,7 @@ local ui = require("python.ui")
 local M = {}
 
 
-local function check_hatch()
+function M.check_hatch()
   if vim.fn.executable("hatch") == 0 then
     vim.notify_once(("python.nvim: Program 'hatch' is required: %s"):format("https://hatch.pypa.io/latest/"),
       vim.log.levels.ERROR)
@@ -72,7 +72,7 @@ local function hatch_install_version(version)
   vim.schedule(
     function()
       vim.system(
-        {"hatch", "python", "install", version},
+        { "hatch", "python", "install", version },
         {
           stdout = ui.show_system_call_progress
         },
@@ -102,7 +102,7 @@ local function hatch_delete_version(version)
   vim.schedule(
     function()
       vim.system(
-        {"hatch", "python", "remove", version},
+        { "hatch", "python", "remove", version },
         {
           stdout = ui.show_system_call_progress
         },
@@ -126,38 +126,29 @@ local function hatch_delete_version(version)
   )
 end
 
+function M.hatch_install_python()
+  local versions = hatch_available_versions()
+  vim.ui.select(versions, { prompt = "Select a python version to install via hatch: " }, function(selection)
+    if not selection then
+      return
+    end
+    hatch_install_version(selection)
+  end)
+end
 
-function M.load_commands()
-  vim.api.nvim_create_user_command("PythonHatchInstallPython", function()
-    if not check_hatch() then
+function M.hatch_list_python()
+  local versions = hatch_installed_versions()
+  vim.print(versions)
+end
+
+function M.hatch_delete_python()
+  local versions = hatch_installed_versions()
+  vim.ui.select(versions, { prompt = "Select a python version to delete in hatch: " }, function(selection)
+    if not selection then
       return
     end
-    local versions = hatch_available_versions()
-    vim.ui.select(versions, { prompt = "Select a python version to install via hatch: " }, function(selection)
-      if not selection then
-        return
-      end
-      hatch_install_version(selection)
-    end)
-  end, { desc = "python.nvim: install a python version using hatch."})
-  vim.api.nvim_create_user_command("PythonHatchListPython", function()
-    if not check_hatch() then
-      return
-    end
-    local versions = hatch_installed_versions()
-  end, { desc = "python.nvim: list pythons installed by hatch."})
-  vim.api.nvim_create_user_command("PythonHatchDeletePython", function()
-    if not check_hatch() then
-      return
-    end
-    local versions = hatch_installed_versions()
-    vim.ui.select(versions, { prompt = "Select a python version to delete in hatch: " }, function(selection)
-      if not selection then
-        return
-      end
-      hatch_delete_version(selection)
-    end)
-  end, { desc = "python.nvim: delete a python version from hatch."})
+    hatch_delete_version(selection)
+  end)
 end
 
 return setmetatable(M, {

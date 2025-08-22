@@ -121,49 +121,54 @@ return {
         enabled_text_actions = {
             "f-strings" -- When inserting {}, put in an f-string
         },
-        -- options with treesitter
-        treesitter = {
-            functions = {
-            -- Wrap treesitter identifier under cursor using substitute_options
-                wrapper = {
-                    -- Substitute options for PythonTSWrapWithFunc
-                    substitute_options = {
-                    "np.array(%s)",
-                    },
-                    -- Look for tree-sitter types to wrap
-                    find_types = {
-                    "tuple", "string", "true", "false", "list", "call", "parenthesized_expression"
-                    }
-                }
-            }
-        },
         -- Adjust when enabled_text_actions is triggered
         enabled_text_actions_autocmd_events = { "InsertLeave" },
 
+        treesitter = {
+            functions = {
+            -- Wrap treesitter identifier under cursor using substitute_options
+            wrapper = {
+                -- Substitute options for PythonTSWrapWithFunc
+                substitute_options = {
+                "print(%s)",
+                "log.debug(%s)",
+                "log.info(%s)",
+                "log.warning(%s)",
+                "log.error(%s)",
+                "np.array(%s)",
+                },
+
+                -- Look for tree-sitter types to wrap
+                find_types = {
+                "tuple", "string", "true", "false", "list", "call", "parenthesized_expression", "expression_statement",
+                "integer"
+                }
+            }
+            }
+        },
         -- Load python keymaps. Everything starting with <leader>p...
         keymaps = {
             -- following nvim_set_keymap() mode, lhs, rhs, opts
             mappings = {
-                ['<leader>pv'] = { "n", "<cmd>PythonVEnvPick<cr>", { desc = "python.nvim: pick venv" } },
-                ['<leader>pi'] = { "n", "<cmd>PythonVEnvInstall<cr>", { desc = "python.nvim: python venv install" } },
-                ['<leader>pd'] = { "n", "<cmd>PythonDap<cr>", { desc = "python.nvim: python run debug program" } },
+            ['<leader>pv'] = { "n", "<cmd>Python venv pick<cr>", { desc = "python.nvim: pick venv" }, },
+            ['<leader>pi'] = { "n", "<cmd>Python venv install<cr>", { desc = "python.nvim: python venv install" } },
+            ['<leader>pd'] = { "n", "<cmd>Python dap<cr>", { desc = "python.nvim: python run debug program" } },
 
-                -- Test Actions
-                ['<leader>ptt'] = { "n", "<cmd>PythonTest<cr>", { desc = "python.nvim: python run test suite" } },
-                ['<leader>ptm'] = { "n", "<cmd>PythonTestMethod<cr>", { desc = "python.nvim: python run test method" } },
-                ['<leader>ptf'] = { "n", "<cmd>PythonTestFile<cr>", { desc = "python.nvim: python run test file" } },
-                ['<leader>ptdd'] = { "n", "<cmd>PythonDebugTest<cr>", { desc = "python.nvim: run test suite in debug mode." } },
-                ['<leader>ptdm'] = { "n", "<cmd>PythonDebugTestMethod<cr>", { desc = "python.nvim: run test method in debug mode." } },
-                ['<leader>ptdf'] = { "n", "<cmd>PythonDebugTestFile<cr>", { desc = "python.nvim: run test file in debug mode." } },
+            -- Test Actions
+            ['<leader>ptt'] = { "n", "<cmd>Python test<cr>", { desc = "python.nvim: python run test suite" } },
+            ['<leader>ptm'] = { "n", "<cmd>Python test_method<cr>", { desc = "python.nvim: python run test method" } },
+            ['<leader>ptf'] = { "n", "<cmd>Python test_file<cr>", { desc = "python.nvim: python run test file" } },
+            ['<leader>ptdd'] = { "n", "<cmd>Python test_debug<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+            ['<leader>ptdm'] = { "n", "<cmd>Python test_method_debug<cr>", { desc = "python.nvim: run test method in debug mode." } },
+            ['<leader>ptdf'] = { "n", "<cmd>Python test_file_debug<cr>", { desc = "python.nvim: run test file in debug mode." } },
 
-                -- VEnv Actions
-                ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
-                ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
+            -- VEnv Actions
+            ['<leader>ped'] = { "n", "<cmd>Python venv delete_select<cr>", { desc = "python.nvim: select and delete a known venv." } },
+            ['<leader>peD'] = { "n", "<cmd>Python venv delete<cr>", { desc = "python.nvim: delete current venv set." } },
 
-                -- Language Actions
-                ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
-                ['<leader>ppw'] = { "n", "<cmd>PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
-                ['<leader>pw'] = { "v", ":PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
+            -- Language Actions
+            ['<leader>ppe'] = { "n", "<cmd>Python treesitter toggle_enumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+            ['<leader>pw'] = { "n", "<cmd>Python treesitter wrap_cursor<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
             }
         },
         -- Settings regarding ui handling
@@ -229,43 +234,43 @@ return {
 - [x] Auto insert fstrings while typing `{}`
   > See `enabled_text_actions` in config
 - [x] Toggle a list into an `enumerate()` list with index
-  > Try `:PythonTSToggleEnumerate` on a `for x in list` list
+  > Try `:Python treesitter toggle_enumerate` on a `for x in list` list
 - [x] Wrap treesitter objects with a pattern.
-  > Try `:PythonTSWrapWithFunc` on a list or tuple. Check config for options
+  > Try `:Python treesitter wrap_cursor` on a list or tuple. Check config for options
   > Can turn `[1, 2, 3]` -> `np.array([1, 2, 3])`
-  > Supply a pattern to immediately wrap like `:PythonTSWrapWithFunc np.array(%s)`
-  > Select in visual mode and execute `:'<'>PythonTSWrapWithFunc`
+  > Supply a pattern to immediately wrap like `:Python treesitter wrap_cursor np.array(%s)`
+  > Select in visual mode and execute `:'<'>Python treesitter wrap_cursor`
 
 ## Commands
 
 ## Main Commands
 
-| Default KeyMap           | Command                    | Functionality                                                                        |
-| ------------------------ | -------------------------- | ------------------------------------------------------------------------------------ |
-| `<leader>pi`             | `:PythonVEnvInstall`       | Create a venv and install dependencies if a supported python package format is found |
-| `<leader>pd`             | `:PythonDap`               | Create and save a new Dap configuration                                              |
-| `<leader>ptt`            | `:PythonTest`              | Run Suite of tests with `neotest`                                                    |
-| `<leader>ptm`            | `:PythonTestMethod`        | Run test function/method with `neotest`                                              |
-| `<leader>ptf`            | `:PythonTestFile`          | Run test file with `neotest`                                                         |
-| `<leader>ppe`            | `:PythonTSToggleEnumerate` | Turn a regular list into `enumerate()` list and back                                 |
-| `<leader>ppw`            | `:PythonTSWrapWithFunc`    | Wrap treesitter indentifiers in a pattern for quick injection.                       |
-| visual mode `<leader>pw` | `:PythonTSWrapWithFunc`    | Wrap treesitter indentifiers in visual mode                                          |
+| Default KeyMap           | Command                               | Functionality                                                                        |
+| ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `<leader>pi`             | `:Python venv install`                | Create a venv and install dependencies if a supported python package format is found |
+| `<leader>pd`             | `:Python dap`                         | Create and save a new Dap configuration                                              |
+| `<leader>ptt`            | `:Python test`                        | Run Suite of tests with `neotest`                                                    |
+| `<leader>ptm`            | `:Python test_method`                 | Run test function/method with `neotest`                                              |
+| `<leader>ptf`            | `:Python test_file`                   | Run test file with `neotest`                                                         |
+| `<leader>ppe`            | `:Python treesitter toggle_enumerate` | Turn a regular list into `enumerate()` list and back                                 |
+| `<leader>ppw`            | `:Python treesitter wrap_cursor`      | Wrap treesitter indentifiers in a pattern for quick injection.                       |
+| visual mode `<leader>pw` | `:Python treesitter wrap_cursor`      | Wrap treesitter indentifiers in visual mode                                          |
 
 ## Advanced Commands
 
-| Default KeyMap | Command                     | Functionality                                                                          |
-| -------------- | --------------------------- | -------------------------------------------------------------------------------------- |
-| `<leader>ped`  | `:PythonVEnvDeleteSelect`   | Select a venv to delete from `python.nvim` state                                       |
-| `<leader>peD`  | `:PythonVEnvDelete`         | Delete current selected venv in project in `python.nvim` state                         |
-| `<leader>ptdd` | `:PythonDebugTest`          | Run Suite of tests with `neotest` in `dap` mode with `dap-python`                      |
-| `<leader>ptdm` | `:PythonDebugTestMethod`    | Run test function/method with `neotest` in `dap` mode with `dap-python`                |
-| `<leader>ptdf` | `:PythonDebugTestFile`      | Run test file with `neotest` in `dap` mode with `dap-python`                           |
-| `none`         | `:PythonHatchListPython`    | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/)           |
-| `none`         | `:PythonHatchInstallPython` | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)              |
-| `none`         | `:PythonHatchDeletePython`  | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)                |
-| `none`         | `:PythonUVInstallPython`    | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
-| `none`         | `:PythonUVDeletePython`     | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
-| `none`         | `:UV <command>`             | Pass through commands to [uv](https://docs.astral.sh/uv/) with command line completion |
+| Default KeyMap | Command                      | Functionality                                                                          |
+| -------------- | ---------------------------- | -------------------------------------------------------------------------------------- |
+| `<leader>ped`  | `:Python venv delete_select` | Select a venv to delete from `python.nvim` state                                       |
+| `<leader>peD`  | `:Python venv delete`        | Delete current selected venv in project in `python.nvim` state                         |
+| `<leader>ptdd` | `:Python test_debug`         | Run Suite of tests with `neotest` in `dap` mode with `dap-python`                      |
+| `<leader>ptdm` | `:Python test_method_debug`  | Run test function/method with `neotest` in `dap` mode with `dap-python`                |
+| `<leader>ptdf` | `:Python test_file_debug`    | Run test file with `neotest` in `dap` mode with `dap-python`                           |
+| `none`         | `:Python hatch list`         | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/)           |
+| `none`         | `:Python hatch install`      | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)              |
+| `none`         | `:Python hatch delete`       | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)                |
+| `none`         | `:Python uv install_python`  | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
+| `none`         | `:Python uv delete_python`   | Delete a python interpreter from [uv](https://docs.astral.sh/uv/)                      |
+| `none`         | `:UV <command>`              | Pass through commands to [uv](https://docs.astral.sh/uv/) with command line completion |
 
 ## Supported python package managers
 
