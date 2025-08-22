@@ -1,15 +1,66 @@
 local config = require('python.config')
 local state = require("python.state")
-local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
-local IS_MACOS = vim.uv.os_uname().sysname == 'Darwin'
+local interpreters = require("python.venv.interpreters")
 local ui = require("python.ui")
+local M = {}
+
+---Remove venv from state by key
+---@param venv_key string
+---@param delete_dir boolean attempt deletion of venv from directory
+function M.delete_venv_from_state(venv_key, delete_dir)
+  if not venv_key then
+    vim.notify_once(string.format("python.nvim: Could not delete venv from state. venv_key was nil"),
+      vim.log.levels.ERROR)
+    return
+  end
+  local lsp = require("python.lsp")
+  local python_venv = require('python.venv')
+
+
+  local python_state = state.State()
+  if not python_state.venvs[venv_key] then
+    vim.notify_once(
+      string.format("python.nvim: Could not delete venv from state. %s was not found in state.venv", venv_key),
+      vim.log.levels.ERROR)
+    return
+  end
+
+  if not delete_dir then
+    return
+  end
+  local old_venv_path = python_state.venvs[venv_key].venv_path
+  if not old_venv_path then
+    return
+  end
+  if vim.fn.isdirectory(old_venv_path) then
+    vim.ui.select({ "Yes", "No" }, {
+      prompt = ("Delete this venv directory?: %s"):format(old_venv_path)
+    }, function(choice)
+      if choice and choice == "Yes" then
+        vim.fn.delete(old_venv_path, "rf")
+        vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
+      end
+    end)
+  end
+
+  python_venv.set_venv_path(nil)
+  lsp.notify_workspace_did_change()
+
+  for k, _ in pairs(python_state.venvs) do
+    if k == venv_key then
+      python_state.venvs[venv_key] = nil
+      break
+    end
+  end
+  state.save(python_state)
+end
 
 --- Set venv. Only set venv if its different than current.
 --- local venv_dir = settings.auto_create_venv_dir
----@param venv_path string full path to venv directory
+---@param venv_path string | nil full path to venv directory
 ---@param venv_name string name of the venv to set
 ---@param venv_source? string name of the source of the venv. useful in determining conda or venv
-local function python_set_venv(venv_path, venv_name, venv_source)
+function M.python_set_venv(venv_path, venv_name, venv_source)
   local lsp = require("python.lsp")
   if venv_path then
     local python_venv = require('python.venv')
@@ -29,37 +80,12 @@ local function python_set_venv(venv_path, venv_name, venv_source)
   end
 end
 
---- Search for file or directory until we either the top of the git repo or root
----@param dir_or_file string name of directory or file
----@return string | nil found either nil or full path of found file/directory
-local function search_up(dir_or_file)
-  local found = nil
-  local dir_to_check = nil
-  -- get parent directory of current file in buffer via vim expand
-  local dir_template = '%:p:h'
-  while not found and dir_to_check ~= '/' do
-    dir_to_check = vim.fn.expand(dir_template)
-    local check_path = dir_to_check .. '/' .. dir_or_file
-    local check_git = dir_to_check .. '/' .. '.git'
-    if vim.fn.isdirectory(check_path) == 1 or vim.fn.filereadable(check_path) == 1 then
-      found = dir_to_check .. '/' .. dir_or_file
-    else
-      dir_template = dir_template .. ':h'
-    end
-    -- If we hit a .git directory then stop searching and return found even if nil
-    if vim.fn.isdirectory(check_git) == 1 then
-      return found
-    end
-  end
-  return found
-end
-
 --- Run uv sync at lock file directory. Set env path when done.
 ---@param uv_lock_path string full path to pdm lock file
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
 ---@param script boolean are we installing from a script definition
-local function uv_sync(uv_lock_path, venv_dir, callback, script)
+function M.uv_sync(uv_lock_path, venv_dir, callback, script)
   vim.schedule(function()
     if vim.fn.executable("uv") == 0 then
       vim.notify_once(
@@ -109,7 +135,7 @@ end
 ---@param pdm_lock_path string full path to pdm lock file
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
-local function pdm_sync(pdm_lock_path, venv_dir, callback)
+function M.pdm_sync(pdm_lock_path, venv_dir, callback)
   if vim.fn.executable("pdm") == 0 then
     vim.notify_once(
       ("python.nvim: 'pdm' application not found please install: %s"):format("https://pdm-project.org/en/latest/"),
@@ -161,7 +187,7 @@ end
 ---@param poetry_lock_path string full path to pdm lock file
 ---@param venv_dir string full path to pdm lock file
 ---@param callback function
-local function poetry_sync(poetry_lock_path, venv_dir, callback)
+function M.poetry_sync(poetry_lock_path, venv_dir, callback)
   if vim.fn.executable("poetry") == 0 then
     vim.notify_once(
       ("python.nvim: 'poetry' application not found please install: %s"):format("https://python-poetry.org/"),
@@ -213,7 +239,7 @@ end
 ---@param requirements_path string full path to requirements.txt, dev-requirements.txt or pyproject.toml
 ---@param venv_dir string
 ---@param callback function
-local function pip_install_with_venv(requirements_path, venv_dir, callback)
+function M.pip_install_with_venv(requirements_path, venv_dir, callback)
   local dir_name = vim.fs.dirname(requirements_path)
   vim.notify_once(
     'python.nvim: starting pip install at: ' .. requirements_path .. ' in venv: ' .. venv_dir,
@@ -254,143 +280,10 @@ local function pip_install_with_venv(requirements_path, venv_dir, callback)
   )
 end
 
-local check_paths = {
-  ['requirements.txt'] = {
-    func = function(install_file, venv_dir, callback)
-      pip_install_with_venv(install_file, venv_dir, callback)
-    end,
-    type = "file",
-    desc = "Installing dependencies via requirements.txt and pip"
-  },
-  ['dev-requirements.txt'] = {
-    func = function(install_file, venv_dir, callback)
-      pip_install_with_venv(install_file, venv_dir, callback)
-    end,
-    type = "file",
-    desc = "Installing dependencies via dev-requirements.txt and pip"
-  },
-  ['pyproject.toml'] = {
-    func = function(install_file, venv_dir, callback)
-      pip_install_with_venv(install_file, venv_dir, callback)
-    end,
-    type = "file",
-    desc = "Installing dependencies via pyproject.toml and pip"
-  },
-  ['poetry.lock'] = {
-    func = function(install_file, venv_dir, callback)
-      poetry_sync(install_file, venv_dir, callback)
-    end,
-    type = "file",
-    desc = "Installing dependencies via poetry.lock and poetry"
-  },
-  ['pdm.lock'] = {
-    func = function(install_file, venv_dir, callback)
-      pdm_sync(install_file, venv_dir, callback)
-    end,
-    type = "file",
-    desc = "Installing dependencies via pdm.lock and pdm"
-  },
-  ['uv.lock'] = {
-    func = function(install_file, venv_dir, callback)
-      uv_sync(install_file, venv_dir, callback, false)
-    end,
-    type = "file",
-    desc = "Installing dependencies via uv.lock and uv"
-  },
-  ['/// script'] = {
-    func = function(install_file, venv_dir, callback)
-      uv_sync(install_file, venv_dir, callback, true)
-    end,
-    type = "pattern",
-    desc = "Installing dependencies via uv /// script block and uv --script"
-  }
-}
-
-local check_paths_ordered_keys = {
-  "uv.lock", "/// script", "pdm.lock", "poetry.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
-}
-
----
----@return table found_hatch_pythons list of python interpreters found by hatch
-local function hatch_interpreters()
-  if vim.fn.executable("hatch") == 1 then
-    local hatch_python_paths = vim.fn.expand("~/.local/share/hatch/pythons")
-    if vim.fn.isdirectory(hatch_python_paths) then
-      local found_hatch_pythons = vim.fn.globpath(hatch_python_paths, vim.fs.joinpath("**", "bin", "python3.*"), false,
-        true)
-      if found_hatch_pythons then
-        return found_hatch_pythons
-      end
-    end
-  end
-  return {}
-end
-
----
----@return table found_uv_pythons list of python interpreters found by uv
-local function uv_interpreters()
-  if vim.fn.executable("uv") == 1 then
-    local uv_python_paths = vim.fn.expand("~/.local/share/uv/python")
-    if vim.fn.isdirectory(uv_python_paths) then
-      local found_uv_pythons = vim.fn.globpath(uv_python_paths, vim.fs.joinpath("**", "bin", "python3.*"), false,
-        true)
-      if found_uv_pythons then
-        return found_uv_pythons
-      end
-    end
-  end
-  return {}
-end
-
----@return table<string> list of potential python interpreters to use
-local function python_interpreters()
-  -- TODO detect python interpreters from windows
-  if IS_WINDOWS then
-    return { "python3" }
-  end
-  -- TODO for macos we probably need to look in other places other than homebrew
-  local pythons = vim.fn.globpath("/usr/bin/", 'python3.*', false, true)
-
-  if IS_MACOS then
-    local homebrew_path = vim.fn.globpath("/opt/homebrew/bin/", 'python3.*', false, true)
-    for _, p in pairs(homebrew_path) do
-      table.insert(pythons, 1, p)
-    end
-  end
-  local found_uv = uv_interpreters()
-  if found_uv then
-    for _, p in pairs(found_uv) do
-      table.insert(pythons, 1, p)
-    end
-  end
-  local found_hatch = hatch_interpreters()
-  if found_hatch then
-    for _, p in pairs(found_hatch) do
-      table.insert(pythons, 1, p)
-    end
-  end
-  local interpreters = nil
-  for _, p in pairs(pythons) do
-    if not interpreters then
-      interpreters = {}
-    end
-    if string.match(vim.fs.basename(p), "python3.%d+$") then
-      table.insert(interpreters, 1, p)
-    end
-  end
-  if not interpreters then
-    vim.notify_once("python.nvim: Warning could not detect python interpreters. Defaulting to python3",
-      vim.log.levels.WARN)
-    interpreters = { "python3" }
-  end
-  return interpreters
-end
-
 ---Create the python venv with selected interpreter"
 ---@param venv_path string path of venv to create
 ---@param python_interpreter string path to python executable to use
----@param callback function
-local function create_venv_with_python(venv_path, python_interpreter, callback)
+local function create_venv_with_python(venv_path, python_interpreter)
   vim.notify_once('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
   local cmd = { python_interpreter, '-m', 'venv', venv_path }
   vim.system(
@@ -401,80 +294,125 @@ local function create_venv_with_python(venv_path, python_interpreter, callback)
         vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr .. obj.stdout), vim.log.levels.ERROR)
         return
       end
-      callback()
-    end)
+    end):wait()
 end
 
-local function venv_install_file(detect)
-  local new_parent_dir = detect[1]
-  local detect_val = detect[2]
-
-  local last_parent_dir = Auto_set_python_venv_parent_dir
-  if last_parent_dir ~= new_parent_dir then
-    Auto_set_python_venv_parent_dir = new_parent_dir
-  end
-  local key = new_parent_dir
-  local install_function = check_paths[detect_val.install_method].func
-  local description = check_paths[detect_val.install_method].desc
-  local venv_path = detect_val.venv_path
-  local install_file = detect_val.install_file
-
-  if detect_val.venv_path == nil or detect_val.python_interpreter == nil then
-    local default_input = config.auto_create_venv_path(new_parent_dir)
-    vim.schedule(function()
-      vim.ui.input({ prompt = description .. "\nInput new venv path: ", default = default_input },
-        function(venv_path_user_input)
-          if venv_path_user_input == nil then
-            vim.notify("python.nvim: Skipping venv creation.")
-            return
-          end
-          local wanted_dir = vim.fs.dirname(venv_path_user_input)
-          if vim.fn.isdirectory(wanted_dir) == 0 then
-            vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
-              vim.log.levels.ERROR)
-            return
-          end
-          vim.schedule(function()
-            vim.ui.select(python_interpreters(), { prompt = 'Select a python interpreter: ' },
-              function(python_interpreter_user_input)
-                if not python_interpreter_user_input then
-                  vim.notify("python.nvim: skipping, no python selected.")
-                  return
-                end
-                create_venv_with_python(venv_path_user_input, python_interpreter_user_input, function()
-                  install_function(install_file, venv_path_user_input, function()
-                    local val = {
-                      python_interpreter = python_interpreter_user_input,
-                      venv_path = venv_path_user_input,
-                      install_method = detect_val.install_method,
-                      install_file = install_file,
-                      source = "venv"
-                    }
-                    local python_state = state.State()
-
-                    local venv_name = vim.fs.basename(vim.fs.dirname(install_file))
-                    python_set_venv(val.venv_path, venv_name)
-                    python_state.venvs[key] = val
-                    state.save(python_state)
-                  end)
-                end)
-              end)
-          end)
-        end)
-    end)
+--- Have user select a python interpreter from found options.
+--- Expected to be running in a coroutine for vim.ui
+---@return string | nil Path to python interpreter
+local function pick_python_interpreter()
+  local co = coroutine.running()
+  vim.schedule(function()
+    vim.ui.select(interpreters.python_interpreters(), { prompt = 'Select a python interpreter: ' },
+      function(str) coroutine.resume(co, str) end)
+  end)
+  local python_interpreter_user_input = coroutine.yield()
+  if not python_interpreter_user_input then
     return
   end
-  if not install_function then
-    vim.notify(
-      ("python.nvim: Unable to find an install function for detected method: '%s'"):format(detect_val.install_method),
+  return python_interpreter_user_input
+end
+
+
+--- Have user input the path to the venv they want to create, with a supplied default
+--- Expected to be running in a coroutine for vim.ui
+---@param detect DetectVEnv
+---@return string | nil Path to venv that user wants to create
+local function pick_venv_path(detect)
+  local detectM = require("python.venv.detect")
+  local default_input = config.auto_create_venv_path(detect.dir)
+  local description = detectM.check_paths[detect.venv.install_method].desc
+
+  local coro = coroutine.running()
+  vim.schedule(function()
+    vim.ui.input({
+        prompt = description .. "\nInput new venv path: ",
+        default = default_input
+      },
+      function(str)
+        coroutine.resume(coro, str)
+      end)
+  end)
+  local venv_path_user_input = coroutine.yield()
+
+  if venv_path_user_input == nil then
+    return
+  end
+
+  local wanted_dir = vim.fs.dirname(venv_path_user_input)
+  if vim.fn.isdirectory(wanted_dir) == 0 then
+    vim.notify_once(string.format("Error: directory of new venv doesn't exist: '%s'", venv_path_user_input),
       vim.log.levels.ERROR)
     return
   end
-  install_function(install_file, venv_path, function() end)
+  return venv_path_user_input
+end
+
+--- Do Update or Installation of the venv, either update an existing venv or have the user select to
+--- create a new venv and install dependencies, selecting a python interpreter.
+---@param detect DetectVEnv
+local function venv_install_file(detect)
+  local detectM = require("python.venv.detect")
+  -- Keep track of last set venv dir in module level variable. This allows us to retrigger the venv
+  -- update when we detect a new dependency file while still in a neovim session.
+  local last_parent_dir = Auto_set_python_venv_parent_dir
+  if last_parent_dir ~= detect.dir then
+    Auto_set_python_venv_parent_dir = detect.dir
+  end
+
+  local install_function = detectM.check_paths[detect.venv.install_method].func
+
+  -- We detected a pre-existing venv and we want to just update its dependencies
+  if detect.venv.venv_path ~= nil or detect.venv.python_interpreter ~= nil then
+    if not install_function then
+      vim.notify(
+        ("python.nvim: Unable to find an install function for detected method: '%s'"):format(detect.venv.install_method),
+        vim.log.levels.ERROR)
+      return
+    end
+    install_function(detect.venv.install_file, detect.venv.venv_path, function() end)
+    return
+  end
+
+  -- We need to create the venv and pick its python interpreter
+  -- Get venv path to create
+  coroutine.resume(coroutine.create(function()
+    local venv_path_user_input = pick_venv_path(detect)
+    if venv_path_user_input == nil then
+      vim.notify("python.nvim: Skipping venv creation, no venv path selected", vim.log.levels.WARN)
+      return
+    end
+    -- Get wanted python interpreter
+    local python_interpreter_user_input = pick_python_interpreter()
+    if python_interpreter_user_input == nil then
+      vim.notify("python.nvim: Skipping venv creation, no python selected.", vim.log.levels.WARN)
+      return
+    end
+
+    create_venv_with_python(venv_path_user_input, python_interpreter_user_input)
+
+    install_function(detect.venv.install_file, venv_path_user_input, function()
+      local val = {
+        python_interpreter = python_interpreter_user_input,
+        venv_path = venv_path_user_input,
+        install_method = detect.venv.install_method,
+        install_file = detect.venv.install_file,
+        source = "venv"
+      }
+      local python_state = state.State()
+
+      local venv_name = vim.fs.basename(vim.fs.dirname(detect.venv.install_file))
+      M.python_set_venv(val.venv_path, venv_name)
+      python_state.venvs[detect.dir] = val
+      state.save(python_state)
+    end)
+  end))
 end
 
 local function set_venv_state()
-  local detect = M.detect_venv_dependency_file(false, false)
+  local detectM = require("python.venv.detect")
+  ---@type DetectVEnv | nil
+  local detect = detectM.detect_venv_dependency_file(false, false)
 
   if detect == nil then
     vim.notify(
@@ -493,49 +431,6 @@ function M.create_and_install_venv()
   set_venv_state()
 end
 
----Remove venv from state by key
----@param venv_key any
-local function delete_venv_from_state(venv_key)
-  if not venv_key then
-    vim.notify_once(string.format("python.nvim: Could not delete venv from state. venv_key was nil"),
-      vim.log.levels.ERROR)
-    return
-  end
-  local lsp = require("python.lsp")
-  local python_venv = require('python.venv')
-
-
-  local python_state = state.State()
-  if not python_state.venvs[venv_key] then
-    vim.notify_once(
-      string.format("python.nvim: Could not delete venv from state. %s was not found in state.venv", venv_key),
-      vim.log.levels.ERROR)
-    return
-  end
-  local old_venv_path = python_state.venvs[venv_key].venv_path
-  if vim.fn.isdirectory(old_venv_path) then
-    vim.ui.select({ "Yes", "No" }, {
-      prompt = ("Delete this venv directory?: %s"):format(old_venv_path)
-    }, function(choice)
-      if choice and choice == "Yes" then
-        vim.fn.delete(old_venv_path, "rf")
-        vim.notify_once(string.format("python.nvim: Deleted venv: %s", old_venv_path), vim.log.levels.WARN)
-      end
-    end)
-  end
-
-  python_venv.set_venv_path(nil)
-  lsp.notify_workspace_did_change()
-
-  for k, _ in pairs(python_state.venvs) do
-    if k == venv_key then
-      python_state.venvs[venv_key] = nil
-      break
-    end
-  end
-  state.save(python_state)
-end
-
 local function delete_venv_from_selection()
   local python_state = state.State()
 
@@ -547,24 +442,27 @@ local function delete_venv_from_selection()
   vim.ui.select(keys, {
     prompt = "Delete venv project from state: "
   }, function(choice)
-    delete_venv_from_state(choice)
+    if choice == nil then
+      return
+    end
+    M.delete_venv_from_state(choice, true)
   end)
 end
 
 ---Delete a venv from state and filesystem
 ---@param select boolean
 function M.delete_venv(select)
+  local detectM = require("python.venv.detect")
   if select then
     delete_venv_from_selection()
-  else
-    local python_state = state.State()
-    local detect = M.detect_venv_dependency_file(false, true)
-    if detect == nil or not python_state.venvs[detect[1]] then
-      vim.notify("python.nvim: Current venv in not found in state. Cant continue", vim.log.levels.WARN)
-      return
-    end
-    delete_venv_from_state(detect[1])
+    return
   end
+  local detect = detectM.detect_venv_dependency_file(false, true)
+  if detect == nil then
+    vim.notify("python.nvim: Current venv in not found in state. Cant continue", vim.log.levels.WARN)
+    return
+  end
+  M.delete_venv_from_state(detect.dir, true)
 end
 
 --- Interactively set a venv in state.
@@ -592,93 +490,14 @@ function M.user_set_venv_in_state_confirmation(venv)
   end)
 end
 
-function M.detect_contents_for_dependencies(notify, cwd_allowed)
-  for pattern, install_function in pairs(check_file_patterns) do
+function M.detect_contents_for_dependencies(_, _)
+  local detectM = require("python.venv.detect")
+  for pattern, install_function in pairs(detectM.check_file_patterns) do
     local match = vim.fn.getline(vim.fn.search(pattern, 'n'))
     if match ~= nil then
       install_function()
     end
   end
-end
-
----@return table<table<string>, PythonStateVEnv> | nil
----@param notify boolean Send notification when venv is not found
----@param cwd_allowed? boolean Allow use of cwd when detecting
-function M.detect_venv_dependency_file(notify, cwd_allowed)
-  local python_state = state.State()
-
-  local found_parent_dir = nil
-  local found_search_path = nil
-  local found_key = nil
-  local found = nil
-
-  for _, search in pairs(check_paths_ordered_keys) do
-    local check_type = check_paths[search].type
-
-    if check_type == "file" then
-      found = search_up(search)
-    elseif check_type == "pattern" then
-      if vim.fn.search(search) ~= 0 then
-        found = vim.api.nvim_buf_get_name(0)
-      end
-    else
-      error("python.nvim: unknown search type: " .. search)
-    end
-
-    if found ~= nil then
-      found_parent_dir = vim.fs.dirname(found)
-      local key = found_parent_dir
-
-      found_search_path = search
-      found_key = key
-      found = found
-
-      if python_state.venvs[key] ~= nil then
-        local venv_path = python_state.venvs[key].venv_path
-        if vim.fn.isdirectory(venv_path) == 0 then
-          delete_venv_from_state(key)
-        else
-          python_set_venv(venv_path, vim.fs.basename(found_parent_dir))
-          return { key, python_state.venvs[key] }
-        end
-      end
-
-      break
-    end
-  end
-  if cwd_allowed then
-    local cwd = vim.fn.getcwd()
-    if not found_parent_dir then
-      found_parent_dir = cwd
-    end
-
-    -- set venv if cwd is found in state before doing searches.
-    if python_state.venvs[cwd] ~= nil and vim.fn.isdirectory(python_state.venvs[cwd].venv_path) ~= 0 then
-      python_set_venv(
-        python_state.venvs[cwd].venv_path,
-        vim.fs.basename(python_state.venvs[cwd].venv_path),
-        python_state.venvs[cwd].source
-      )
-      return { cwd, python_state.venvs[cwd] }
-    end
-  end
-  -- We found a dependency file, but we aren't stored in State
-  -- cwd check also failed, so we can continue.
-  if found_search_path and found_key and found then
-    return { found_key, {
-      install_method = found_search_path,
-      install_file = found,
-      source = "venv",
-      python_interpreter = nil,
-      venv_path = nil,
-    } }
-  end
-  if notify then
-    vim.notify_once(
-      string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", found_parent_dir),
-      vim.log.levels.WARN)
-  end
-  return nil
 end
 
 return setmetatable(M, {

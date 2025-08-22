@@ -110,9 +110,7 @@ local function create_dap_config(cwd, venv, python_state)
   end)
 end
 
-function M.load_commands()
-  local dap = require("dap")
-  vim.api.nvim_create_user_command("PythonDap", function()
+function M.python_dap_run()
     M.prepare_debugpy(function(venv)
       vim.schedule(function()
         local dap_python = require("dap-python")
@@ -134,9 +132,6 @@ function M.load_commands()
         end
       end)
     end)
-  end, {
-    desc = "python.nvim: create or list dap configure"
-  })
 end
 
 return setmetatable(M, {

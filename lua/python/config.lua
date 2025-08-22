@@ -54,7 +54,8 @@ local defaults = {
 
         -- Look for tree-sitter types to wrap
         find_types = {
-          "tuple", "string", "true", "false", "list", "call", "parenthesized_expression", "expression_statement", "integer"
+          "tuple", "string", "true", "false", "list", "call", "parenthesized_expression", "expression_statement",
+          "integer"
         }
       }
     }
@@ -63,26 +64,26 @@ local defaults = {
   keymaps = {
     -- following nvim_set_keymap() mode, lhs, rhs, opts
     mappings = {
-      ['<leader>pv'] = { "n", "<cmd>PythonVEnvPick<cr>", { desc = "python.nvim: pick venv" } },
-      ['<leader>pi'] = { "n", "<cmd>PythonVEnvInstall<cr>", { desc = "python.nvim: python venv install" } },
-      ['<leader>pd'] = { "n", "<cmd>PythonDap<cr>", { desc = "python.nvim: python run debug program" } },
+      ['<leader>pv'] = { "n", "<cmd>Python venv pick<cr>", { desc = "python.nvim: pick venv" }, },
+      ['<leader>pi'] = { "n", "<cmd>Python venv install<cr>", { desc = "python.nvim: python venv install" } },
+      ['<leader>pd'] = { "n", "<cmd>Python dap<cr>", { desc = "python.nvim: python run debug program" } },
 
       -- Test Actions
-      ['<leader>ptt'] = { "n", "<cmd>PythonTest<cr>", { desc = "python.nvim: python run test suite" } },
-      ['<leader>ptm'] = { "n", "<cmd>PythonTestMethod<cr>", { desc = "python.nvim: python run test method" } },
-      ['<leader>ptf'] = { "n", "<cmd>PythonTestFile<cr>", { desc = "python.nvim: python run test file" } },
-      ['<leader>ptdd'] = { "n", "<cmd>PythonDebugTest<cr>", { desc = "python.nvim: run test suite in debug mode." } },
-      ['<leader>ptdm'] = { "n", "<cmd>PythonDebugTestMethod<cr>", { desc = "python.nvim: run test method in debug mode." } },
-      ['<leader>ptdf'] = { "n", "<cmd>PythonDebugTestFile<cr>", { desc = "python.nvim: run test file in debug mode." } },
+      ['<leader>ptt'] = { "n", "<cmd>Python test<cr>", { desc = "python.nvim: python run test suite" } },
+      ['<leader>ptm'] = { "n", "<cmd>Python test_method<cr>", { desc = "python.nvim: python run test method" } },
+      ['<leader>ptf'] = { "n", "<cmd>Python test_file<cr>", { desc = "python.nvim: python run test file" } },
+      ['<leader>ptdd'] = { "n", "<cmd>Python test_debug<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+      ['<leader>ptdm'] = { "n", "<cmd>Python test_method_debug<cr>", { desc = "python.nvim: run test method in debug mode." } },
+      ['<leader>ptdf'] = { "n", "<cmd>Python test_file_debug<cr>", { desc = "python.nvim: run test file in debug mode." } },
 
       -- VEnv Actions
-      ['<leader>ped'] = { "n", "<cmd>PythonVEnvDeleteSelect<cr>", { desc = "python.nvim: select and delete a known venv." } },
-      ['<leader>peD'] = { "n", "<cmd>PythonVEnvDelete<cr>", { desc = "python.nvim: delete current venv set." } },
+      ['<leader>ped'] = { "n", "<cmd>Python venv delete_select<cr>", { desc = "python.nvim: select and delete a known venv." } },
+      ['<leader>peD'] = { "n", "<cmd>Python venv delete<cr>", { desc = "python.nvim: delete current venv set." } },
 
       -- Language Actions
-      ['<leader>ppe'] = { "n", "<cmd>PythonTSToggleEnumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
-      ['<leader>ppw'] = { "n", "<cmd>PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
-      ['<leader>pw'] = { "v", ":PythonTSWrapWithFunc<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
+      ['<leader>ppe'] = { "n", "<cmd>Python treesitter toggle_enumerate<cr>", { desc = "python.nvim: turn list into enumerate" } },
+      ['<leader>ppw'] = { "n", "<cmd>Python treesitter wrap_cursor<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
+      ['<leader>pw'] = { "v", ":Python treesitter wrap_cursor<cr>", { desc = "python.nvim: wrap treesitter identifier with pattern" } },
     }
   },
   -- Settings regarding ui handling

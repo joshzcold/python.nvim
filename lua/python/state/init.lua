@@ -1,8 +1,8 @@
 local M = {}
 
 ---@class PythonStateVEnv
----@field python_interpreter string
----@field venv_path string
+---@field python_interpreter string | nil
+---@field venv_path string | nil
 ---@field install_method string
 ---@field install_file string
 ---@field source string

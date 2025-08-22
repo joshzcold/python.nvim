@@ -41,7 +41,7 @@ local function replaceNodeText(node, replacementText)
 	vim.api.nvim_buf_set_text(0, startRow, startCol, endRow, endCol, lines)
 end
 
-local function ts_toggle_enumerate()
+function M.ts_toggle_enumerate()
 	local node = getNodeAtCursor()
 	if not node then return end
 
@@ -79,7 +79,6 @@ local function ts_toggle_enumerate()
 	elseif #left_items > 1 and is_enumerate then
 		local right_text_match = string.match(right_text, [[^enumerate%W(.+)%W]])
 		right_text = right_text_match
-		print(right_text)
 		replaceNodeText(right, right_text)
 
 		left_text = left_items[2]
@@ -167,7 +166,7 @@ end
 
 ---@param subtitute_option nil|string if string then use as substitute
 ---	otherwise select from config
-local function ts_wrap_at_cursor(subtitute_option)
+function M.ts_wrap_at_cursor(subtitute_option)
 	local m = vim.fn.visualmode() -- detect current mode
 
 	if m == 'v' or m == '\22' then
@@ -206,25 +205,6 @@ local function ts_wrap_at_cursor(subtitute_option)
 		replaceNodeText(find_node, new_text)
 		return
 	end)
-end
-
-function M.load_commands()
-	vim.api.nvim_create_user_command("PythonTestTSQueries", function()
-		ts.test_ts_queries()
-	end, {})
-
-	vim.api.nvim_create_user_command("PythonTSToggleEnumerate", function()
-		ts_toggle_enumerate()
-	end, {})
-	vim.api.nvim_create_user_command("PythonTSWrapWithFunc", function(substitute_option)
-		ts_wrap_at_cursor(substitute_option.args)
-	end, {
-		complete = function()
-			return config.treesitter.functions.wrapper.substitute_options
-		end,
-		nargs = "?",
-		range = true
-	})
 end
 
 function M.pythonFStr()
