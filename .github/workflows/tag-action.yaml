@@ -1,15 +1,32 @@
+# example 2: on merge to master from pull request (recommended)
 name: Bump version
 on:
   push:
     branches:
       - main
+# name: Bump version
+# on:
+#   pull_request:
+#     types:
+#       - closed
+#     branches:
+#       - main
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@master
-      - name: Bump version and push tag
-        uses: hennejg/github-tag-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          release_branches: main
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: '0'
+
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG_PREFIX: v
+        PRERELEASE: true
