@@ -1,21 +1,15 @@
-# example 2: on merge to master from pull request (recommended)
 name: Bump version
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
-# name: Bump version
-# on:
-#   pull_request:
-#     types:
-#       - closed
-#     branches:
-#       - main
 
 jobs:
   build:
-    # if: github.event.pull_request.merged == true
-    runs-on: ubuntu-22.04
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
