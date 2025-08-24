@@ -1,0 +1,53 @@
+name: Neovim Plugin Tests
+on:
+  pull_request:
+    paths:
+      - "Makefile"
+      - ".github/workflows/tests.yaml"
+      - "examples/**"
+      - "lua/**"
+      - "tests/**"
+  push:
+    paths:
+      - "Makefile"
+      - ".github/workflows/tests.yaml"
+      - "examples/**"
+      - "lua/**"
+      - "tests/**"
+
+env: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Run tests
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        neovim_version: ["v0.10.4", "v0.11.3", "nightly"]
+        include:
+          - os: macos-latest
+            neovim_version: v0.11.3
+          # TODO include windows when I have access to test on a windows machine.
+          # - os: windows-latest
+          #   neovim_version: v0.11.3
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim_version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run tests
+        run: make test

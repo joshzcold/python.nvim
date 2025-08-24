@@ -1,0 +1,8 @@
+[project]
+name = "test"
+dependencies = [
+  "boto3"
+]
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "A short description of my awesome Python package."

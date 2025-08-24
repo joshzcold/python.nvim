@@ -1,7 +1,5 @@
 -- Utility functions and commands utilizing treesitter
 local M = {}
-local nodes = require('python.treesitter.nodes')
-local ts = require('python.treesitter')
 local config = require('python.config')
 
 ---get node at cursor and validate that the user has at least nvim 0.9

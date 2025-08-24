@@ -283,7 +283,7 @@ end
 ---Create the python venv with selected interpreter"
 ---@param venv_path string path of venv to create
 ---@param python_interpreter string path to python executable to use
-local function create_venv_with_python(venv_path, python_interpreter)
+function M.create_venv_with_python(venv_path, python_interpreter)
   vim.notify_once('python.nvim: creating venv at: ' .. venv_path, vim.log.levels.INFO)
   local cmd = { python_interpreter, '-m', 'venv', venv_path }
   vim.system(
@@ -389,7 +389,7 @@ local function venv_install_file(detect)
       return
     end
 
-    create_venv_with_python(venv_path_user_input, python_interpreter_user_input)
+    M.create_venv_with_python(venv_path_user_input, python_interpreter_user_input)
 
     install_function(detect.venv.install_file, venv_path_user_input, function()
       local val = {
