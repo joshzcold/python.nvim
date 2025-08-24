@@ -12,3 +12,4 @@ jobs:
         uses: hennejg/github-tag-action@v4.1.jh1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: main
