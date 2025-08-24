@@ -2,6 +2,7 @@ local state = require("python.state")
 local create = require("python.venv.create")
 
 local M = {}
+local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
 
 ---@class DetectVEnv
 ---@field dir string Current working directory found containing venv
@@ -119,12 +120,12 @@ function M.search_up(dir_or_file)
   local dir_to_check = nil
   -- get parent directory of current file in buffer via vim expand
   local dir_template = '%:p:h'
-  while not found and dir_to_check ~= '/' do
+  while not found and (dir_to_check ~= '/' or dir_to_check ~= "C:\\" or dir_to_check ~= "D:\\") do
     dir_to_check = vim.fn.expand(dir_template)
-    local check_path = dir_to_check .. '/' .. dir_or_file
-    local check_git = dir_to_check .. '/' .. '.git'
+    local check_path = vim.fs.joinpath(dir_to_check, dir_or_file)
+    local check_git = vim.fs.joinpath(dir_to_check, '.git')
     if vim.fn.isdirectory(check_path) == 1 or vim.fn.filereadable(check_path) == 1 then
-      found = dir_to_check .. '/' .. dir_or_file
+      found = vim.fs.joinpath(dir_to_check, dir_or_file)
     else
       dir_template = dir_template .. ':h'
     end
@@ -155,6 +156,11 @@ function M.search_for_detected_type()
     if check_type == "pattern" then
       if vim.fn.search(search) ~= 0 then
         local found = vim.api.nvim_buf_get_name(0)
+        -- Go through join path to get / slashes to be consistent in windows like
+        -- we get with M.search_up
+        if IS_WINDOWS then
+          found = vim.fs.joinpath(vim.fs.dirname(found), vim.fs.basename(found))
+        end
         return found, search
       end
     end

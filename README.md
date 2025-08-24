@@ -289,12 +289,12 @@ return {
 
 - [x] Linux
 
-- [x] MacOS (Mostly should work)
+- [x] MacOS
 
-  - [x] I am detecting python interpreters in homebrew and hatch. Does the community use other methods of installing python?
+  - [x] I am detecting python interpreters in homebrew and hatch and uv. Testing in ci.
 
 - [ ] Windows (Un tested)
-  - [ ] Most likely spots where we are mixing up `/` vs `\` in paths
+  - [ ] Need to test this plugin on a windows machine to verify. I have seen online that neovim users are deciding on WezTerm + WSL to handle support for neovim plugins.
 
 ## Special Thanks
 

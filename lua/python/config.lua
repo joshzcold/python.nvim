@@ -109,10 +109,35 @@ local defaults = {
   }
 }
 
+-- Only for existing keys in `target`.
+local function tbl_deep_extend_existing(target, source, prev_key)
+  -- Return if source or target is not a table or is nil
+  if type(target) ~= "table" or type(source) ~= "table" then
+    return target
+  end
+
+  for key, value in pairs(source) do
+    -- Only update keys that already exist in the target table
+    if target[key] ~= nil then
+      if type(target[key]) == "table" and type(value) == "table" then
+        prev_key = prev_key .. "." .. key
+        -- Recurse for nested tables
+        tbl_deep_extend_existing(target[key], value, prev_key)
+      else
+        -- Overwrite existing key
+        target[key] = value
+      end
+    else
+      error(("python.nvim: user inputted config key: %s is not found in config table: %s"):format(key, prev_key))
+    end
+  end
+  return target
+end
+
 ---@param opts? python.Config
 function M.setup(opts)
   opts = opts or {}
-  M.config = vim.tbl_deep_extend('force', defaults, opts)
+  M.config = tbl_deep_extend_existing(defaults, opts, "config")
 end
 
 return setmetatable(M, {

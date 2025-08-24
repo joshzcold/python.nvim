@@ -1,6 +1,4 @@
 import requests
-import boto3
-import redis
 
 def main():
     print("Hello from uv!")
