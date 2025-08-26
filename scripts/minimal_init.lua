@@ -8,7 +8,6 @@ if #vim.api.nvim_list_uis() == 0 then
   --
   local runtime_dependencies = {
     "deps/mini.nvim",
-    "deps/nui.nvim",
     "deps/nvim-treesitter",
     "deps/neotest",
     "deps/neotest-python",
@@ -21,7 +20,6 @@ if #vim.api.nvim_list_uis() == 0 then
   vim.cmd('set rtp+=' .. runtime_path)
 
   -- Set up 'mini.test'
-  require('nui.popup')
   require('luasnip.extras.fmt')
   require('luasnip.nodes.absolute_indexer')
   require('nvim-treesitter.locals')

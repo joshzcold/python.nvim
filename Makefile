@@ -15,7 +15,6 @@ deps: deps/mini.nvim \
 			deps/nvim-dap \
 			deps/nvim-dap-python \
 			deps/nvim-lspconfig \
-			deps/nui.nvim \
 			deps/LuaSnip \
 			deps/neotest \
 			deps/neotest-python \
@@ -53,11 +52,6 @@ deps/nvim-lspconfig:
 	set -x
 	@mkdir -p deps
 	git clone --filter=blob:none https://github.com/neovim/nvim-lspconfig $@
-
-deps/nui.nvim:
-	set -x
-	@mkdir -p deps
-	git clone --filter=blob:none https://github.com/MunifTanjim/nui.nvim $@
 
 deps/LuaSnip:
 	set -x

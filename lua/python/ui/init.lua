@@ -1,5 +1,4 @@
 local config = require('python.config')
--- local Popup = require("nui.popup")
 
 local split_default_style = {
   split = 'below',
