@@ -1,43 +1,56 @@
 local config = require('python.config')
-local Popup = require("nui.popup")
+-- local Popup = require("nui.popup")
 
+local split_default_style = {
+  split = 'below',
+  win = 0,
+  width = 40,
+  height = 10,
+  focusable = true,
+}
 
----@class Popup
----@field border string
----@field 
-local Popup = {}
+local popup_default_style = {
+  border = "rounded",
+  relative = "win",
+  focusable = true,
+  title = "python.nvim",
+  anchor = "SE",
+  zindex = 999,
+  width = 40,
+  height = 20,
+  row = vim.o.lines - 3,
+  col = vim.o.columns - 2,
+  style = "minimal"
+}
 
-function Popup:new(o)
+---@class UI
+---@field win_opts table<string, any>
+---@field win number | nil
+---@field buf number | nil
+local UI = {
+  win_opts = {},
+  win = nil,
+  buf = nil,
+}
+
+function UI:new(o)
   o = o or {}
   setmetatable(o, self)
   self.__index = self
   return o
 end
 
-function Popup:mount()
-  local buf = vim.api.nvim_create_buf(false, true)
+function UI:mount()
+  self.buf = vim.api.nvim_create_buf(false, true)
+  self.win = vim.api.nvim_open_win(self.buf, false, self.win_opts)
+end
 
-  local win_opts = {
-    relative = "editor",
-    width = 60,
-    height = 10,
-    row = math.floor((vim.o.lines - 10) / 2),       -- Center vertically
-    col = math.floor((vim.o.columns - 60) / 2),     -- Center horizontally
-    border = "rounded",
-    focusable = true,
-  }
-
-  local win = vim.api.nvim_open_win(buf, true, win_opts)
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
-    "This is a custom Neovim UI window!",
-    "",
-    "Press <esc> to close.",
-  })
+function UI:unmount()
+  vim.api.nvim_win_close(self.win, true)
 end
 
 local empty_system_ui = {
-  ---@type Popup
+  ---@type UI
   ui = nil,
   line_count = 0,
 }
@@ -74,20 +87,12 @@ function M.activate_system_call_ui()
   M.deactivate_system_call_ui(0)
   local ui = nil
   if config.ui.default_ui_style == "popup" then
-    ui = Popup({
-      border = 'single',
-      anchor = "NE",
-      relative = "win",
-      zindex = config.ui.zindex,
-      position = {
-        row = 1,
-        col = vim.api.nvim_win_get_width(0) - 3,
-      },
-      size = {
-        width = config.ui.popup.demensions.width,
-        height = config.ui.popup.demensions.height,
-      }
-    })
+    local win_opts = vim.tbl_deep_extend('keep', config.ui.popup.win_opts or {}, popup_default_style)
+    ui = UI:new({ win_opts = win_opts })
+  end
+  if config.ui.default_ui_style == "split" then
+    local win_opts = vim.tbl_deep_extend('keep', config.ui.split.win_opts or {}, split_default_style)
+    ui = UI:new({ win_opts = win_opts })
   end
   if ui then
     -- mount/open the component
@@ -119,18 +124,18 @@ function M.show_system_call_progress(err, data, flush, callback)
     local _, line_count = out:gsub('\n', '\n')
     if flush then
       M.system_ui.line_count = 0
-      pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.bufnr, 0, 0, 0, 0, {})
+      pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.buf, 0, 0, 0, 0, {})
     end
 
     local row = M.system_ui.line_count
     local increase = row + line_count
 
-    if not M.system_ui.ui.bufnr then
+    if not M.system_ui.ui.buf then
       return
     end
     -- Don't throw errors if we can't set the text on the next line for something reason
-    pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.bufnr, row, 0, row, 0, vim.fn.split(out .. "\n", "\n"))
-    pcall(vim.api.nvim_win_set_cursor, M.system_ui.ui.winid, { row, 0 })
+    pcall(vim.api.nvim_buf_set_text, M.system_ui.ui.buf, row, 0, row, 0, vim.fn.split(out .. "\n", "\n"))
+    pcall(vim.api.nvim_win_set_cursor, M.system_ui.ui.win, { row, 0 })
 
     M.system_ui.line_count = increase
     if callback then
