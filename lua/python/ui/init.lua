@@ -1,8 +1,43 @@
 local config = require('python.config')
 local Popup = require("nui.popup")
 
+
+---@class Popup
+---@field border string
+---@field 
+local Popup = {}
+
+function Popup:new(o)
+  o = o or {}
+  setmetatable(o, self)
+  self.__index = self
+  return o
+end
+
+function Popup:mount()
+  local buf = vim.api.nvim_create_buf(false, true)
+
+  local win_opts = {
+    relative = "editor",
+    width = 60,
+    height = 10,
+    row = math.floor((vim.o.lines - 10) / 2),       -- Center vertically
+    col = math.floor((vim.o.columns - 60) / 2),     -- Center horizontally
+    border = "rounded",
+    focusable = true,
+  }
+
+  local win = vim.api.nvim_open_win(buf, true, win_opts)
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, {
+    "This is a custom Neovim UI window!",
+    "",
+    "Press <esc> to close.",
+  })
+end
+
 local empty_system_ui = {
-  ---@type NuiPopup|NuiPopup.constructor
+  ---@type Popup
   ui = nil,
   line_count = 0,
 }
