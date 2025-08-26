@@ -90,15 +90,33 @@ local defaults = {
   ui = {
     -- Amount of time to pause closing of ui after a finished task
     ui_close_timeout = 5000,
-    -- zindex of new ui elements.
-    zindex = 999,
+
     -- Default ui style for interfaces created by python.nvim
-    ---@alias python_ui_default_style "'popup'|nil"
+    ---@alias python_ui_default_style "'popup'|'split'|nil"
     default_ui_style = "popup",
+
+    -- Customize the position and behavior of the ui style
     popup = {
-      demensions = {
-        width = "60",
-        height = "25"
+      win_opts = {
+        -- border = "rounded",
+        -- relative = "win",
+        -- focusable = true,
+        -- title = "python.nvim",
+        -- anchor = "SE",
+        -- zindex = 999,
+        -- width = 40,
+        -- height = 20,
+        -- row = vim.o.lines - 3,
+        -- col = vim.o.columns -2,
+      }
+    },
+    split = {
+      win_opts = {
+        -- split = 'below',
+        -- win = 0,
+        -- width = 40,
+        -- height = 10,
+        -- focusable = true,
       }
     }
   },

@@ -24,7 +24,6 @@ return {
         { "mfussenegger/nvim-dap" },
         { "mfussenegger/nvim-dap-python" },
         { "neovim/nvim-lspconfig" },
-        { "MunifTanjim/nui.nvim" },
         { "L3MON4D3/LuaSnip" },
         { "nvim-neotest/neotest" },
         { "nvim-neotest/neotest-python" },
@@ -47,7 +46,6 @@ return {
         { "mfussenegger/nvim-dap" },
         { "mfussenegger/nvim-dap-python" },
         { "neovim/nvim-lspconfig" },
-        { "MunifTanjim/nui.nvim" },
         { "L3MON4D3/LuaSnip" },
         { "nvim-neotest/neotest" },
         { "nvim-neotest/neotest-python" },
@@ -72,7 +70,6 @@ vim.pack.add("https://github.com/joshzcold/python.nvim")
 vim.pack.add("https://github.com/mfussenegger/nvim-dap")
 vim.pack.add("https://github.com/mfussenegger/nvim-dap-python")
 vim.pack.add("https://github.com/neovim/nvim-lspconfig")
-vim.pack.add("https://github.com/MunifTanjim/nui.nvim")
 vim.pack.add("https://github.com/L3MON4D3/LuaSnip")
 vim.pack.add("https://github.com/nvim-neotest/neotest")
 vim.pack.add("https://github.com/nvim-neotest/neotest-python")
