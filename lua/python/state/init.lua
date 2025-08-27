@@ -32,13 +32,14 @@ Should look like this
     }
 }
 
-]] --
+]]
+--
 ---@class PythonState
 ---@field venvs table<string, PythonStateVEnv>
 ---@field dap table<string, dap.Configuration>
 PythonState = PythonState or {
   venvs = {},
-  dap = {}
+  dap = {},
 }
 
 local data_path = vim.fn.stdpath("data")
@@ -98,7 +99,7 @@ end
 ---@param new_state PythonState
 function PythonStateM.save(new_state)
   local result_state = merge_tables(PythonState, new_state)
-  vim.fn.writefile({vim.json.encode(result_state)}, state_path, "s")
+  vim.fn.writefile({ vim.json.encode(result_state) }, state_path, "s")
 end
 
 return PythonStateM
