@@ -1,8 +1,18 @@
+--- *python.nvim* Python tool box for neovim
+---
+--- MIT License Copyright (c) 2025 Joshua Cold
+---
+--- ==============================================================================
+---
+--- |python.nvim| is a collection of tools for python development in neovim.
+--- Helping speed up dependency management, debugging and other tasks that
+--- apart of developing in the python language.
+---
 ---@class python
-local M = {}
+local Python = {}
 
 ---@param opts? python.Config
-function M.setup(opts)
+function Python.setup(opts)
   local config = require("python.config")
   config.setup(opts)
 
@@ -58,7 +68,7 @@ function M.setup(opts)
   if config.enabled_text_actions then
     local ts = require("python.treesitter.commands")
     local enabled_text_actions_map = {
-      ["f-strings"] = ts.pythonFStr
+      ["f-strings"] = ts.pythonFStr,
     }
 
     vim.api.nvim_create_autocmd(config.enabled_text_actions_autocmd_events, {
@@ -81,8 +91,4 @@ function M.setup(opts)
   end
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python")[k]
-  end,
-})
+return Python

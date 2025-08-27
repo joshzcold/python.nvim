@@ -1,4 +1,3 @@
-
 -- Define helper aliases
 local new_set = MiniTest.new_set
 local expect, eq = MiniTest.expect, MiniTest.expect.equality
@@ -13,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup()]])
     end,
@@ -22,9 +21,9 @@ local T = new_set({
   },
 })
 
-T['interpreters'] = MiniTest.new_set()
+T["interpreters"] = MiniTest.new_set()
 
-T['interpreters']['python'] = function()
+T["interpreters"]["python"] = function()
   child.lua("inter = require('python.venv.interpreters')")
   local pythons = child.lua("return inter.python_interpreters()")
   assert(#pythons > 0)

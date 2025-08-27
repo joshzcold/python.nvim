@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup()]])
     end,
@@ -20,14 +20,13 @@ local T = new_set({
     post_once = child.stop,
   },
 })
-T['uv'] = MiniTest.new_set({
+T["uv"] = MiniTest.new_set({
   hooks = {
-    pre_case = function()
-    end
-  }
+    pre_case = function() end,
+  },
 })
 
-T['uv']['command'] = function()
+T["uv"]["command"] = function()
   child.cmd("cd examples/python_projects/uv")
   child.cmd("e main.py")
   child.cmd([[!rm -rf .venv]])

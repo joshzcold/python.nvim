@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup()]])
     end,

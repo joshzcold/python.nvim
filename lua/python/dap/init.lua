@@ -1,13 +1,13 @@
 --- DAP integrations
 
-local M = {}
+local PythonDap = {}
 
 local state = require("python.state")
 
 --- Get venv for DAP functions
 ---@return VEnv | nil venv
 local function get_venv()
-  local venv = require('python.venv').current_venv()
+  local venv = require("python.venv").current_venv()
   if not venv then
     vim.notify_once("python.nvim: Need a venv to do DAP actions", vim.log.levels.WARN)
     return
@@ -15,26 +15,24 @@ local function get_venv()
   return venv
 end
 
-
 --- Read venv with debug py and launch callback
 ---@param callback? function
-function M.prepare_debugpy(callback)
+function PythonDap.prepare_debugpy(callback)
   local venv = get_venv()
   if not venv then
     return
   end
   vim.schedule(function()
-    vim.system(
-      { vim.fs.joinpath(venv.path, "bin", "pip"), "install", "debugpy" },
-      {}, function(obj)
-        if obj.code ~= 0 then
-          vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
-          return
-        end
-        vim.notify_once(string.format('python.nvim: Installed debugpy into %s', venv.name), vim.log.levels.INFO)
-        vim.schedule(function() callback(venv) end)
+    vim.system({ vim.fs.joinpath(venv.path, "bin", "pip"), "install", "debugpy" }, {}, function(obj)
+      if obj.code ~= 0 then
+        vim.notify_once("python.nvim: " .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+        return
       end
-    )
+      vim.notify_once(string.format("python.nvim: Installed debugpy into %s", venv.name), vim.log.levels.INFO)
+      vim.schedule(function()
+        callback(venv)
+      end)
+    end)
   end)
 end
 
@@ -45,22 +43,22 @@ end
 local function create_dap_config(cwd, venv, python_state)
   local dap = require("dap")
   vim.ui.select({ "file", "file:args", "program:args" }, {
-    prompt = "python.nvim: Select new dap style configuration: "
+    prompt = "python.nvim: Select new dap style configuration: ",
   }, function(choice)
     if not choice then
       return
     end
     local config = {
-      type = 'python',
-      request = 'launch',
+      type = "python",
+      request = "launch",
       name = cwd,
-      program = '${file}',
-      pythonPath = vim.fs.joinpath(venv.path, "bin", "python")
+      program = "${file}",
+      pythonPath = vim.fs.joinpath(venv.path, "bin", "python"),
     }
 
     if choice == "file:args" then
       vim.ui.input({
-        prompt = "Program Arguments: "
+        prompt = "Program Arguments: ",
       }, function(input)
         local args = vim.split(input, " ")
         local _args = {}
@@ -73,14 +71,14 @@ local function create_dap_config(cwd, venv, python_state)
 
           ::continue::
         end
-        config['args'] = args
+        config["args"] = args
       end)
     elseif choice == "program:args" then
       vim.ui.input({
-        prompt = "Program with arguments: "
+        prompt = "Program with arguments: ",
       }, function(program)
         local args = vim.split(program, " ")
-        config['program'] = args[1]
+        config["program"] = args[1]
         local _args = {}
 
         for idx, arg in pairs(args) do
@@ -96,13 +94,13 @@ local function create_dap_config(cwd, venv, python_state)
 
           ::continue::
         end
-        config['args'] = _args
+        config["args"] = _args
       end)
     end
     python_state.dap[cwd] = config
     state.save(python_state)
     vim.schedule(function()
-      M.prepare_debugpy(function()
+      PythonDap.prepare_debugpy(function()
         vim.notify("python.nvim dap config: " .. vim.inspect(config))
         dap.run(config)
       end)
@@ -110,32 +108,28 @@ local function create_dap_config(cwd, venv, python_state)
   end)
 end
 
-function M.python_dap_run()
-    M.prepare_debugpy(function(venv)
-      vim.schedule(function()
-        local dap_python = require("dap-python")
-        dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
-        local python_state = state.State()
-        local cwd = vim.fn.getcwd()
-        if python_state.dap[cwd] == nil then
-          create_dap_config(cwd, venv, python_state)
-        else
-          vim.ui.select({ "Yes", "Create New" }, {
-            prompt = "Use this config?: " .. vim.inspect(python_state.dap[cwd])
-          }, function(choice)
-            if choice == "Create New" then
-              create_dap_config(cwd, venv, python_state)
-            elseif choice == "Yes" then
-              dap.run(python_state.dap[cwd])
-            end
-          end)
-        end
-      end)
+function PythonDap.python_dap_run()
+  PythonDap.prepare_debugpy(function(venv)
+    vim.schedule(function()
+      local dap_python = require("dap-python")
+      dap_python.setup(vim.fs.joinpath(venv.path, "bin", "python3"), {})
+      local python_state = state.State()
+      local cwd = vim.fn.getcwd()
+      if python_state.dap[cwd] == nil then
+        create_dap_config(cwd, venv, python_state)
+      else
+        vim.ui.select({ "Yes", "Create New" }, {
+          prompt = "Use this config?: " .. vim.inspect(python_state.dap[cwd]),
+        }, function(choice)
+          if choice == "Create New" then
+            create_dap_config(cwd, venv, python_state)
+          elseif choice == "Yes" then
+            dap.run(python_state.dap[cwd])
+          end
+        end)
+      end
     end)
+  end)
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.dap")[k]
-  end,
-})
+return PythonDap

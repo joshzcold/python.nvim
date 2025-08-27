@@ -1,8 +1,8 @@
 local state = require("python.state")
 local create = require("python.venv.create")
 
-local M = {}
-local IS_WINDOWS = vim.uv.os_uname().sysname == 'Windows_NT'
+local PythonVENVDetect = {}
+local IS_WINDOWS = vim.uv.os_uname().sysname == "Windows_NT"
 
 ---@class DetectVEnv
 ---@field dir string Current working directory found containing venv
@@ -44,11 +44,7 @@ function DetectVEnv:found_in_cwd()
     if not venv_name then
       return false
     end
-    create.python_set_venv(
-      python_state.venvs[cwd].venv_path,
-      venv_name,
-      python_state.venvs[cwd].source
-    )
+    create.python_set_venv(python_state.venvs[cwd].venv_path, venv_name, python_state.venvs[cwd].source)
     self.dir = cwd
     self.venv = python_state.venvs[cwd]
     return true
@@ -56,78 +52,84 @@ function DetectVEnv:found_in_cwd()
   return false
 end
 
-M.check_paths = {
-  ['requirements.txt'] = {
+PythonVENVDetect.check_paths = {
+  ["requirements.txt"] = {
     func = function(install_file, venv_dir, callback)
       create.pip_install_with_venv(install_file, venv_dir, callback)
     end,
     type = "file",
-    desc = "Installing dependencies via requirements.txt and pip"
+    desc = "Installing dependencies via requirements.txt and pip",
   },
-  ['dev-requirements.txt'] = {
+  ["dev-requirements.txt"] = {
     func = function(install_file, venv_dir, callback)
       create.pip_install_with_venv(install_file, venv_dir, callback)
     end,
     type = "file",
-    desc = "Installing dependencies via dev-requirements.txt and pip"
+    desc = "Installing dependencies via dev-requirements.txt and pip",
   },
-  ['pyproject.toml'] = {
+  ["pyproject.toml"] = {
     func = function(install_file, venv_dir, callback)
       create.pip_install_with_venv(install_file, venv_dir, callback)
     end,
     type = "file",
-    desc = "Installing dependencies via pyproject.toml and pip"
+    desc = "Installing dependencies via pyproject.toml and pip",
   },
-  ['poetry.lock'] = {
+  ["poetry.lock"] = {
     func = function(install_file, venv_dir, callback)
       create.poetry_sync(install_file, venv_dir, callback)
     end,
     type = "file",
-    desc = "Installing dependencies via poetry.lock and poetry"
+    desc = "Installing dependencies via poetry.lock and poetry",
   },
-  ['pdm.lock'] = {
+  ["pdm.lock"] = {
     func = function(install_file, venv_dir, callback)
       create.pdm_sync(install_file, venv_dir, callback)
     end,
     type = "file",
-    desc = "Installing dependencies via pdm.lock and pdm"
+    desc = "Installing dependencies via pdm.lock and pdm",
   },
-  ['uv.lock'] = {
+  ["uv.lock"] = {
     func = function(install_file, venv_dir, callback)
       create.uv_sync(install_file, venv_dir, callback, false)
     end,
     type = "file",
-    desc = "Installing dependencies via uv.lock and uv"
+    desc = "Installing dependencies via uv.lock and uv",
   },
-  ['/// script'] = {
+  ["/// script"] = {
     func = function(install_file, venv_dir, callback)
       create.uv_sync(install_file, venv_dir, callback, true)
     end,
     type = "pattern",
-    desc = "Installing dependencies via uv /// script block and uv --script"
-  }
+    desc = "Installing dependencies via uv /// script block and uv --script",
+  },
 }
 
-M.check_paths_ordered_keys = {
-  "uv.lock", "/// script", "pdm.lock", "poetry.lock", "pyproject.toml", "dev-requirements.txt", "requirements.txt"
+PythonVENVDetect.check_paths_ordered_keys = {
+  "uv.lock",
+  "/// script",
+  "pdm.lock",
+  "poetry.lock",
+  "pyproject.toml",
+  "dev-requirements.txt",
+  "requirements.txt",
 }
 
 --- Search for file or directory until we either the top of the git repo or root
 ---@param dir_or_file string name of directory or file
 ---@return string | nil found either nil or full path of found file/directory
-function M.search_up(dir_or_file)
+function PythonVENVDetect.search_up(dir_or_file)
   local found = nil
   local dir_to_check = nil
   -- get parent directory of current file in buffer via vim expand
-  local dir_template = '%:p:h'
-  while not found and (dir_to_check ~= '/' or dir_to_check ~= "C:\\" or dir_to_check ~= "D:\\") do
+  local dir_template = "%:p:h"
+  while not found and (dir_to_check ~= "/" or dir_to_check ~= "C:\\" or dir_to_check ~= "D:\\") do
     dir_to_check = vim.fn.expand(dir_template)
     local check_path = vim.fs.joinpath(dir_to_check, dir_or_file)
-    local check_git = vim.fs.joinpath(dir_to_check, '.git')
+    local check_git = vim.fs.joinpath(dir_to_check, ".git")
     if vim.fn.isdirectory(check_path) == 1 or vim.fn.filereadable(check_path) == 1 then
       found = vim.fs.joinpath(dir_to_check, dir_or_file)
     else
-      dir_template = dir_template .. ':h'
+      dir_template = dir_template .. ":h"
     end
     -- If we hit a .git directory then stop searching and return found even if nil
     if vim.fn.isdirectory(check_git) == 1 then
@@ -142,12 +144,12 @@ end
 --- what the community probably wants detected first.
 ---@return string | nil found
 ---@return string | nil search
-function M.search_for_detected_type()
-  for _, search in pairs(M.check_paths_ordered_keys) do
-    local check_type = M.check_paths[search].type
+function PythonVENVDetect.search_for_detected_type()
+  for _, search in pairs(PythonVENVDetect.check_paths_ordered_keys) do
+    local check_type = PythonVENVDetect.check_paths[search].type
 
     if check_type == "file" then
-      local found = M.search_up(search)
+      local found = PythonVENVDetect.search_up(search)
       if found ~= nil then
         return found, search
       end
@@ -171,8 +173,8 @@ end
 ---@return DetectVEnv | nil
 ---@param notify boolean Send notification when venv is not found
 ---@param cwd_allowed? boolean Allow use of cwd when detecting
-function M.detect_venv_dependency_file(notify, cwd_allowed)
-  local found, found_search_path = M.search_for_detected_type()
+function PythonVENVDetect.detect_venv_dependency_file(notify, cwd_allowed)
+  local found, found_search_path = PythonVENVDetect.search_for_detected_type()
 
   local found_parent_dir = vim.fs.dirname(found)
 
@@ -203,7 +205,8 @@ function M.detect_venv_dependency_file(notify, cwd_allowed)
     if notify then
       vim.notify_once(
         string.format("python.nvim: venv not found for '%s' run :PythonVEnvInstall to create one ", found_parent_dir),
-        vim.log.levels.WARN)
+        vim.log.levels.WARN
+      )
     end
     return detect
   end
@@ -212,8 +215,4 @@ function M.detect_venv_dependency_file(notify, cwd_allowed)
   return nil
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.venv.detect")[k]
-  end,
-})
+return PythonVENVDetect

@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[config = require('python.config')]])
     end,
@@ -21,21 +21,21 @@ local T = new_set({
   },
 })
 
-T['setup'] = MiniTest.new_set()
+T["setup"] = MiniTest.new_set()
 
-T['setup']['init'] = function()
-  child.lua('config.setup({})')
-  eq(child.lua('return config.python_lua_snippets'), false)
+T["setup"]["init"] = function()
+  child.lua("config.setup({})")
+  eq(child.lua("return config.python_lua_snippets"), false)
 end
 
-T['setup']['override'] = function()
-  child.lua('config.setup({ python_lua_snippets = true })')
-  eq(child.lua('return config.python_lua_snippets'), true)
+T["setup"]["override"] = function()
+  child.lua("config.setup({ python_lua_snippets = true })")
+  eq(child.lua("return config.python_lua_snippets"), true)
 end
 
-T['setup']['not_found'] = function()
-  expect.error(function() 
-    child.lua('config.setup({ ui = { popup = {foobar = true}} })')
+T["setup"]["not_found"] = function()
+  expect.error(function()
+    child.lua("config.setup({ ui = { popup = {foobar = true}} })")
   end, ".*user inputted config key: foobar is not found.*")
 end
 

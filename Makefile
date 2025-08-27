@@ -10,6 +10,15 @@ test: deps test_requirements
 test_file: deps test_requirements
 	nvim --headless --noplugin -u ./scripts/minimal_init.lua -c "lua MiniTest.run_file('$(FILE)')"
 
+documentation: deps/mini.nvim
+	nvim --headless --noplugin -u ./scripts/minimal_init.lua -c "lua require('mini.doc').generate()" -c "qa!"
+
+lint:
+	stylua --color always --respect-ignores --check .
+
+lint-fix:
+	stylua --color always --respect-ignores .
+
 # Install all test dependencies
 deps: deps/mini.nvim \
 			deps/nvim-dap \

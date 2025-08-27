@@ -1,0 +1,47 @@
+name: Linting and style checking
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.actor }}
+  cancel-in-progress: true
+
+jobs:
+  stylua:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: JohnnyMorganz/stylua-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          version: v2.1.0
+          # CLI arguments
+          args: --color always --respect-ignores --check .
+
+  gendoc:
+    name: Document generation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.11.3
+      - uses: actions/checkout@v4
+      - name: Generate documentation
+        run: make --silent documentation
+      - name: Check for changes
+        run: if [[ -n $(git status -s) ]]; then exit 1; fi
+
+  case-sensitivity:
+    name: File case sensitivity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check Case Sensitivity
+        uses: credfeto/action-case-checker@v1.2.1

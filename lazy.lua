@@ -1,5 +1,5 @@
 return {
-  'joshzcold/python.nvim',
+  "joshzcold/python.nvim",
   dependencies = {
     { "mfussenegger/nvim-dap" },
     { "mfussenegger/nvim-dap-python" },
@@ -7,5 +7,5 @@ return {
     { "L3MON4D3/LuaSnip" },
     { "nvim-neotest/neotest" },
     { "nvim-neotest/neotest-python" },
-  }
+  },
 }
