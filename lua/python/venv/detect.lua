@@ -122,7 +122,8 @@ function PythonVENVDetect.search_up(dir_or_file)
   local dir_to_check = nil
   -- get parent directory of current file in buffer via vim expand
   local dir_template = "%:p:h"
-  while not found and (dir_to_check ~= "/" or dir_to_check ~= "C:\\" or dir_to_check ~= "D:\\") do
+  -- TODO replace this with neovim built-in vim.fs.find
+  while not found and (dir_to_check ~= "/" and dir_to_check ~= "C:\\" and dir_to_check ~= "D:\\") do
     dir_to_check = vim.fn.expand(dir_template)
     local check_path = vim.fs.joinpath(dir_to_check, dir_or_file)
     local check_git = vim.fs.joinpath(dir_to_check, ".git")
