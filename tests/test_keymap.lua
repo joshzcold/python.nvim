@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup()]])
     end,
@@ -22,7 +22,7 @@ local T = new_set({
 })
 
 -- Keymaps can be loaded
-T['keymaps'] = function()
+T["keymaps"] = function()
   child.cmd("cd examples/python_projects/uv")
   child.cmd("e main.py")
   local keymap = child.cmd_capture("map <leader>pi")

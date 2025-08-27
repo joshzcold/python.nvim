@@ -1,10 +1,10 @@
 -- LSP user commands
 
-local M = {}
+local PythonLSPCommands = {}
 
 --- Change the type checking mode of either basedpyright or pyright if found.
 ---@param mode string type checking mode
-function M.pyright_change_type_checking(mode)
+function PythonLSPCommands.pyright_change_type_checking(mode)
   local check_clients = { "pyright", "basedpyright" }
 
   for _, client_name in pairs(check_clients) do
@@ -28,8 +28,4 @@ function M.pyright_change_type_checking(mode)
   end
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.lsp.commands")[k]
-  end,
-})
+return PythonLSPCommands

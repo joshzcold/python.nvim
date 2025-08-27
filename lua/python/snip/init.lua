@@ -1,4 +1,4 @@
-local M = {}
+local PythonSnippets = {}
 
 local ls = require("luasnip")
 local fmt = require("luasnip.extras.fmt").fmt
@@ -6,11 +6,11 @@ local fmta = require("luasnip.extras.fmt").fmta
 local rep = require("luasnip.extras").rep
 local ai = require("luasnip.nodes.absolute_indexer")
 local partial = require("luasnip.extras").partial
-local nodes = require('python.treesitter.nodes')
-local config = require('python.config')
+local nodes = require("python.treesitter.nodes")
+local config = require("python.config")
 
 local function is_in_test_file()
-  local filename = vim.fn.expand('%:p')
+  local filename = vim.fn.expand("%:p")
   -- no required convention for python tests.
   -- Just assume if test is in the full path we might be in a test file.
   return string.find(filename, "test")
@@ -41,33 +41,43 @@ local not_in_fn = {
 }
 
 local always = {
-  show_condition = function() return true end,
-  condition = function() return true end,
+  show_condition = function()
+    return true
+  end,
+  condition = function()
+    return true
+  end,
 }
 
 local snippets = {
   -- Main
   ls.s(
     { trig = "main", name = "Main", dscr = "python.nvim: Create a main function" },
-    fmt([[
+    fmt(
+      [[
     def main():
       {}
 
     if __name__ == "__main__":
       main()
-    ]], ls.i(0)),
+    ]],
+      ls.i(0)
+    ),
     not_in_fn
   ),
 
   ls.s(
     { trig = "ifmain", name = "Main", dscr = "python.nvim: Create a main function" },
-    fmt([[
+    fmt(
+      [[
     def main():
       {}
 
     if __name__ == "__main__":
       main()
-    ]], ls.i(0)),
+    ]],
+      ls.i(0)
+    ),
     not_in_fn
   ),
 
@@ -75,10 +85,10 @@ local snippets = {
     {
       trig = "argparse_typed",
       name = "Argparse Typed Arguments",
-      dscr =
-      "python.nvim: Argparse mapping to dataclass for typed completion of arguments"
+      dscr = "python.nvim: Argparse mapping to dataclass for typed completion of arguments",
     },
-    fmt([[
+    fmt(
+      [[
       import argparse
       from dataclasses import dataclass
 
@@ -100,8 +110,9 @@ local snippets = {
         my_arg_1 = ls.i(1, { "my_arg_1" }),
         my_arg_2 = rep(1),
         my_arg_3 = rep(1),
-        finally  = ls.i(0)
-      }),
+        finally = ls.i(0),
+      }
+    ),
     not_in_fn
   ),
 
@@ -109,9 +120,10 @@ local snippets = {
     {
       trig = "colors",
       name = "Color variables",
-      dscr = "python.nvim: Python const variables of terminal colors escape sequences."
+      dscr = "python.nvim: Python const variables of terminal colors escape sequences.",
     },
-    fmt([[
+    fmt(
+      [[
       PURPLE = "\033[95m"
       BLUE = "\033[94m"
       CYAN = "\033[96m"
@@ -124,9 +136,11 @@ local snippets = {
       UNDERLINE = "\033[4m"
       ITALICS = "\033[3m"
       {}
-    ]], {
-      ls.i(0)
-    }),
+    ]],
+      {
+        ls.i(0),
+      }
+    ),
     always
   ),
 
@@ -134,139 +148,164 @@ local snippets = {
     {
       trig = "match_case",
       name = "Match-Case statement",
-      dscr = "python.nvim: Python Match Case statement with default case."
+      dscr = "python.nvim: Python Match Case statement with default case.",
     },
-    fmt([[
+    fmt(
+      [[
       match {var}:
         case "{one}":
           ...{finally}
         case _:
           ...
-    ]], {
-      var = ls.i(1, { "var" }),
-      one = ls.i(2, { "one" }),
-      finally = ls.i(0)
-    }),
+    ]],
+      {
+        var = ls.i(1, { "var" }),
+        one = ls.i(2, { "one" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "switch_case",
       name = "Match-Case statement",
-      dscr = "python.nvim: Python Match Case statement with default case."
+      dscr = "python.nvim: Python Match Case statement with default case.",
     },
-    fmt([[
+    fmt(
+      [[
       match {var}:
         case "{one}":
           ...{finally}
         case _:
           ...
-    ]], {
-      var = ls.i(1, { "var" }),
-      one = ls.i(2, { "one" }),
-      finally = ls.i(0)
-    }),
+    ]],
+      {
+        var = ls.i(1, { "var" }),
+        one = ls.i(2, { "one" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "if_ternary_condition",
       name = "Python version of a ternay",
-      dscr = "python.nvim: Single line conditional, emulating ternarary"
+      dscr = "python.nvim: Single line conditional, emulating ternarary",
     },
-    fmt([[
+    fmt(
+      [[
       {var} = "{foo}" if {True} else "{bar}"{finally}
-    ]], {
-      var = ls.i(1, { "var" }),
-      foo = ls.i(2, { "foo" }),
-      True = ls.i(3, { "True" }),
-      bar = ls.i(4, { "bar" }),
-      finally = ls.i(0)
-    }),
+    ]],
+      {
+        var = ls.i(1, { "var" }),
+        foo = ls.i(2, { "foo" }),
+        True = ls.i(3, { "True" }),
+        bar = ls.i(4, { "bar" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "list_comprehension",
       name = "Python create list loop expression",
-      dscr = "python.nvim: Create new list from expression inside of list"
+      dscr = "python.nvim: Create new list from expression inside of list",
     },
-    fmt([[
+    fmt(
+      [[
       {var} = [a for a in x if a == True]
-    ]], {
-      var = ls.i(1, { "var" }),
-    }),
+    ]],
+      {
+        var = ls.i(1, { "var" }),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "merge_dicts",
       name = "Python create dict from 2 dicts using spread operation",
-      dscr = "python.nvim: Create dictionary from spread operator"
+      dscr = "python.nvim: Create dictionary from spread operator",
     },
-    fmt([[
+    fmt(
+      [[
       {var} = {{**{dict_1}, **{dict_2} }}
-    ]], {
-      var = ls.i(1, { "var" }),
-      dict_1 = ls.i(1, { "dict_1" }),
-      dict_2 = ls.i(1, { "dict_2" }),
-    }),
+    ]],
+      {
+        var = ls.i(1, { "var" }),
+        dict_1 = ls.i(1, { "dict_1" }),
+        dict_2 = ls.i(1, { "dict_2" }),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "with_open",
       name = "python create open file io",
-      dscr = "python.nvim: create io object with open"
+      dscr = "python.nvim: create io object with open",
     },
-    fmt([[
+    fmt(
+      [[
       with open("/path", "{r}", encoding="utf-8") as f:
         ...{finally}
-    ]], {
-      r = ls.i(1, { "r" }),
-      finally = ls.i(0),
-    }),
+    ]],
+      {
+        r = ls.i(1, { "r" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "for_with_index",
       name = "Python For in loop with index",
-      dscr = "python.nvim: for in loop with index in python"
+      dscr = "python.nvim: for in loop with index in python",
     },
-    fmt([[
+    fmt(
+      [[
       for i, {val} in enumerate({var}):
         ...{finally}
-    ]], {
-      val = ls.i(1, { "val" }),
-      var = ls.i(2, { "var" }),
-      finally = ls.i(0),
-    }),
+    ]],
+      {
+        val = ls.i(1, { "val" }),
+        var = ls.i(2, { "var" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "enumerate",
       name = "Python For in loop with index",
-      dscr = "python.nvim: for in loop with index in python"
+      dscr = "python.nvim: for in loop with index in python",
     },
-    fmt([[
+    fmt(
+      [[
       for i, {val} in enumerate({var}):
         ...{finally}
-    ]], {
-      val = ls.i(1, { "val" }),
-      var = ls.i(2, { "var" }),
-      finally = ls.i(0),
-    }),
+    ]],
+      {
+        val = ls.i(1, { "val" }),
+        var = ls.i(2, { "var" }),
+        finally = ls.i(0),
+      }
+    ),
     always
   ),
   ls.s(
     {
       trig = "colored_logs",
       name = "Python colorized logger formatter",
-      dscr = "python.nvim: logging module formatter for colored logs"
+      dscr = "python.nvim: logging module formatter for colored logs",
     },
-    fmt([[
+    fmt(
+      [[
       import logging
 
       class ColoredFormatter(logging.Formatter):
@@ -300,7 +339,9 @@ local snippets = {
       ch.setLevel(logging.INFO)
       ch.setFormatter(ColoredFormatter())
       log.addHandler(ch)
-    ]], {}, {}
+    ]],
+      {},
+      {}
     ),
     {},
     not_in_fn
@@ -312,12 +353,13 @@ local snippets = {
       name = "requests GET",
       dscr = "python.nvim: requests Library get call",
     },
-    fmt([[
+    fmt(
+      [[
         resp = requests.get(url="{}", headers={{}}, params={{}})
         resp.raise_for_status()
       ]],
       {
-        ls.i(1, "http://localhost")
+        ls.i(1, "http://localhost"),
       },
       {}
     ),
@@ -329,14 +371,15 @@ local snippets = {
       name = "requests POST",
       dscr = "python.nvim: requests Library post call",
     },
-    fmt([[
+    fmt(
+      [[
         resp = requests.post(url="{}", headers={{}}, params={{}}, body={{
 
         }})
         resp.raise_for_status()
       ]],
       {
-        ls.i(1, "http://localhost")
+        ls.i(1, "http://localhost"),
       },
       {}
     ),
@@ -348,14 +391,15 @@ local snippets = {
       name = "requests PUT",
       dscr = "python.nvim: requests Library put call",
     },
-    fmt([[
+    fmt(
+      [[
         resp = requests.put(url="{}", headers={{}}, params={{}}, body={{
 
         }})
         resp.raise_for_status()
       ]],
       {
-        ls.i(1, "http://localhost")
+        ls.i(1, "http://localhost"),
       },
       {}
     ),
@@ -367,12 +411,13 @@ local snippets = {
       name = "requests DELETE",
       dscr = "python.nvim: requests Library delete call",
     },
-    fmt([[
+    fmt(
+      [[
         resp = requests.delete(url="{}", headers={{}}, params={{}})
         resp.raise_for_status()
       ]],
       {
-        ls.i(1, "http://localhost")
+        ls.i(1, "http://localhost"),
       },
       {}
     ),
@@ -384,7 +429,8 @@ local snippets = {
       name = "argparse string arg",
       dscr = "python.nvim: argparse string argument",
     },
-    fmt([[
+    fmt(
+      [[
         parser.add_argument('--{}', metavar='{}', type=str, help='{}', required=True)
       ]],
       {
@@ -402,7 +448,8 @@ local snippets = {
       name = "argparse string bool",
       dscr = "python.nvim: argparse bool argument flag",
     },
-    fmt([[
+    fmt(
+      [[
         parser.add_argument('--{}', metavar='{}', action="store_true", help='{}')
       ]],
       {
@@ -420,7 +467,8 @@ local snippets = {
       name = "argparse string list",
       dscr = "python.nvim: argparse list arguments",
     },
-    fmt([[
+    fmt(
+      [[
         parser.add_argument('--{}', metavar='{}', action="append", help='{}')
       ]],
       {
@@ -438,7 +486,8 @@ local snippets = {
       name = "UV script shebang with dependencies",
       dscr = "python.nvim: UV script shebang with dependency definition.",
     },
-    fmt([[
+    fmt(
+      [[
         #!/usr/bin/env -S uv run --script
         #
         # /// script
@@ -457,7 +506,7 @@ local snippets = {
   ),
 }
 
-function M.load_snippets()
+function PythonSnippets.load_snippets()
   if not config.python_lua_snippets then
     return
   end
@@ -467,8 +516,4 @@ function M.load_snippets()
   vim.g._python_nvim_snippets_loaded = true
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.snip")[k]
-  end,
-})
+return PythonSnippets

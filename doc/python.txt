@@ -1,0 +1,690 @@
+==============================================================================
+------------------------------------------------------------------------------
+                                                                        *Python*
+                                    `Python`
+*python.nvim* Python tool box for neovim
+
+MIT License Copyright (c) 2025 Joshua Cold
+
+==============================================================================
+
+|python.nvim| is a collection of tools for python development in neovim.
+Helping speed up dependency management, debugging and other tasks that
+apart of developing in the python language.
+
+Class ~
+{python}
+
+------------------------------------------------------------------------------
+                                                                *Python.setup()*
+                             `Python.setup`({opts})
+Parameters ~
+{opts} `(optional)` `(python.Config)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Class ~
+{PythonSubcommand}
+Fields ~
+{impl} `(fun(args:string[], opts: table))` The command implementation
+{complete} `(optional)` `(fun(subcmd_arg_lead: string): string[])` (optional) Command completions callback, taking the lead of the subcommand's arguments
+
+------------------------------------------------------------------------------
+                                                                *subcommand_tbl*
+                                `subcommand_tbl`
+Type ~
+`(table<string, PythonSubcommand>)`
+
+------------------------------------------------------------------------------
+                                                                  *python_cmd()*
+                              `python_cmd`({opts})
+Parameters ~
+{opts} `(table)` :h lua-guide-commands-create
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                  *PythonConfig*
+                                 `PythonConfig`
+Type ~
+`(python.Config)`
+
+------------------------------------------------------------------------------
+                                                         *PythonConfig.defaults*
+                            `PythonConfig.defaults`
+Python.nvim config
+Default values:
+>lua
+  PythonConfig.defaults = {
+    -- Should return a list of tables with a `name` and a `path` entry each.
+    -- Gets the argument `venvs_path` set below.
+    -- By default just lists the entries in `venvs_path`.
+    ---@return VEnv[]
+    get_venvs = function(venvs_path)
+      return require("python.venv").get_venvs(venvs_path)
+    end,
+    -- Path for venvs picker
+    venvs_path = vim.fn.expand("~/.virtualenvs"),
+    -- Something to do after setting an environment
+    post_set_venv = nil,
+    -- base path for creating new venvs
+    auto_create_venv_path = function(parent_dir)
+      return vim.fs.joinpath(parent_dir, ".venv")
+    end,
+    -- Patterns for autocmd LspAttach that trigger the auto venv logic
+    -- Add onto this list if you depend on venvs for other file types
+    -- like .yaml, .yml for ansible
+    auto_venv_lsp_attach_patterns = { "*.py" },
+
+    -- Filetypes to activate commands for python.nvim
+    command_setup_filetypes = { "python" },
+
+    -- Load python.nvim python snippets
+    python_lua_snippets = false,
+
+    -- List of text actions to take on InsertLeave, TextChanged
+    -- Put in empty table or nil to disable
+    enabled_text_actions = {
+      "f-strings", -- When inserting {}, put in an f-string
+    },
+    -- Adjust when enabled_text_actions is triggered
+    enabled_text_actions_autocmd_events = { "InsertLeave" },
+
+    treesitter = {
+      functions = {
+        -- Wrap treesitter identifier under cursor using substitute_options
+        wrapper = {
+          -- Substitute options for PythonTSWrapWithFunc
+          substitute_options = {
+            "print(%s)",
+            "log.debug(%s)",
+            "log.info(%s)",
+            "log.warning(%s)",
+            "log.error(%s)",
+            "np.array(%s)",
+          },
+
+          -- Look for tree-sitter types to wrap
+          find_types = {
+            "tuple",
+            "string",
+            "true",
+            "false",
+            "list",
+            "call",
+            "parenthesized_expression",
+            "expression_statement",
+            "integer",
+          },
+        },
+      },
+    },
+    -- Load python keymaps. Everything starting with <leader>p...
+    keymaps = {
+      -- following nvim_set_keymap() mode, lhs, rhs, opts
+      mappings = {
+        ["<leader>pv"] = { "n", "<cmd>Python venv pick<cr>", { desc = "python.nvim: pick venv" } },
+        ["<leader>pi"] = { "n", "<cmd>Python venv install<cr>", { desc = "python.nvim: python venv install" } },
+        ["<leader>pd"] = { "n", "<cmd>Python dap<cr>", { desc = "python.nvim: python run debug program" } },
+
+        -- Test Actions
+        ["<leader>ptt"] = { "n", "<cmd>Python test<cr>", { desc = "python.nvim: python run test suite" } },
+        ["<leader>ptm"] = { "n", "<cmd>Python test_method<cr>", { desc = "python.nvim: python run test method" } },
+        ["<leader>ptf"] = { "n", "<cmd>Python test_file<cr>", { desc = "python.nvim: python run test file" } },
+        ["<leader>ptdd"] = { "n", "<cmd>Python test_debug<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+        ["<leader>ptdm"] = {
+          "n",
+          "<cmd>Python test_method_debug<cr>",
+          { desc = "python.nvim: run test method in debug mode." },
+        },
+        ["<leader>ptdf"] = {
+          "n",
+          "<cmd>Python test_file_debug<cr>",
+          { desc = "python.nvim: run test file in debug mode." },
+        },
+
+        -- VEnv Actions
+        ["<leader>ped"] = {
+          "n",
+          "<cmd>Python venv delete_select<cr>",
+          { desc = "python.nvim: select and delete a known venv." },
+        },
+        ["<leader>peD"] = { "n", "<cmd>Python venv delete<cr>", { desc = "python.nvim: delete current venv set." } },
+
+        -- Language Actions
+        ["<leader>ppe"] = {
+          "n",
+          "<cmd>Python treesitter toggle_enumerate<cr>",
+          { desc = "python.nvim: turn list into enumerate" },
+        },
+        ["<leader>ppw"] = {
+          "n",
+          "<cmd>Python treesitter wrap_cursor<cr>",
+          { desc = "python.nvim: wrap treesitter identifier with pattern" },
+        },
+        ["<leader>pw"] = {
+          "v",
+          ":Python treesitter wrap_cursor<cr>",
+          { desc = "python.nvim: wrap treesitter identifier with pattern" },
+        },
+      },
+    },
+    -- Settings regarding ui handling
+    ui = {
+      -- Amount of time to pause closing of ui after a finished task
+      ui_close_timeout = 5000,
+
+      -- Default ui style for interfaces created by python.nvim
+      ---@alias python_ui_default_style "'popup'|'split'|nil"
+      default_ui_style = "popup",
+
+      -- Customize the position and behavior of the ui style
+      popup = {
+        win_opts = {
+          -- border = "rounded",
+          -- relative = "win",
+          -- focusable = true,
+          -- title = "python.nvim",
+          -- anchor = "SE",
+          -- zindex = 999,
+          -- width = 40,
+          -- height = 20,
+          -- row = vim.o.lines - 3,
+          -- col = vim.o.columns -2,
+        },
+      },
+      split = {
+        win_opts = {
+          -- split = 'below',
+          -- win = 0,
+          -- width = 40,
+          -- height = 10,
+          -- focusable = true,
+        },
+      },
+    },
+
+    -- Tell neotest-python which test runner to use
+    test = {
+      test_runner = "pytest",
+    },
+  }
+<
+Class ~
+{python.Config}
+
+------------------------------------------------------------------------------
+                                                          *PythonConfig.setup()*
+                          `PythonConfig.setup`({opts})
+Parameters ~
+{opts} `(optional)` `(python.Config)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+DAP integrations
+
+------------------------------------------------------------------------------
+                                                                    *get_venv()*
+                                  `get_venv`()
+Get venv for DAP functions
+Return ~
+`(VEnv | nil)` venv
+
+------------------------------------------------------------------------------
+                                                   *PythonDap.prepare_debugpy()*
+                    `PythonDap.prepare_debugpy`({callback})
+Read venv with debug py and launch callback
+Parameters ~
+{callback} `(optional)` `(function)`
+
+------------------------------------------------------------------------------
+                                                           *create_dap_config()*
+               `create_dap_config`({cwd}, {venv}, {python_state})
+Interactively create dap configuration
+Parameters ~
+{cwd} `(string)` current working directory for python_state key
+{venv} `(VEnv)` venv to attach to pythonPath
+{python_state}  `(PythonState)` python_state object
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                    *hatch_installed_versions()*
+                          `hatch_installed_versions`()
+Get list of python versions hatch has installed
+Return ~
+`(table)` list of available python versions from hatch
+
+------------------------------------------------------------------------------
+                                                    *hatch_available_versions()*
+                          `hatch_available_versions`()
+Get list of python versions hatch can install
+Return ~
+`(table)` list of available python versions from hatch
+
+------------------------------------------------------------------------------
+                                                       *hatch_install_version()*
+                       `hatch_install_version`({version})
+Install a python version using hatch
+Parameters ~
+{version} `(string)` Python version to install via hatch
+
+------------------------------------------------------------------------------
+                                                        *hatch_delete_version()*
+                       `hatch_delete_version`({version})
+Delete a python version using hatch
+Parameters ~
+{version} `(string)` Python version to delete via hatch
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                              *PythonLSPCommands.pyright_change_type_checking()*
+            `PythonLSPCommands.pyright_change_type_checking`({mode})
+Change the type checking mode of either basedpyright or pyright if found.
+Parameters ~
+{mode} `(string)` type checking mode
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                               *PythonStateVEnv*
+                               `PythonStateVEnv`
+Class ~
+{PythonStateVEnv}
+Fields ~
+{python_interpreter} `(string | nil)`
+{venv_path} `(string | nil)`
+{install_method} `(string)`
+{install_file} `(string)`
+{source} `(string)`
+
+------------------------------------------------------------------------------
+                                                                *PythonStateDap*
+                                `PythonStateDap`
+Class ~
+{PythonStateDap}
+Fields ~
+{file} `(string)`
+{args} `(string[])`
+
+------------------------------------------------------------------------------
+                                                                   *PythonState*
+                                 `PythonState`
+Class ~
+{PythonState}
+Fields ~
+{venvs} `(table<string, PythonStateVEnv>)`
+{dap} `(table<string, dap.Configuration>)`
+
+------------------------------------------------------------------------------
+                                                           *PythonState.State()*
+                             `PythonState.State`()
+Return ~
+`(PythonState)`
+
+------------------------------------------------------------------------------
+                                                            *PythonState.save()*
+                        `PythonState.save`({new_state})
+Parameters ~
+{new_state} `(PythonState)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                             *getNodeAtCursor()*
+                              `getNodeAtCursor`()
+node at cursor and validate that the user has at least nvim 0.9
+Return ~
+`(nil|TSNode)` nil if no node or nvim version too old
+
+------------------------------------------------------------------------------
+                                                   *findNodeOfParentsWithType()*
+               `findNodeOfParentsWithType`({node}, {node_types})
+Parameters ~
+{node} `(TSNode)` node to start search
+{node_types} `(table)` list of node types to look for
+Return ~
+`(nil | TSNode)`
+
+------------------------------------------------------------------------------
+                                                                 *getNodeText()*
+                             `getNodeText`({node})
+Parameters ~
+{node} `(TSNode)`
+Return ~
+`(string)`
+
+------------------------------------------------------------------------------
+                                                             *replaceNodeText()*
+                  `replaceNodeText`({node}, {replacementText})
+Parameters ~
+{node} `(TSNode)`
+{replacementText} `(string)`
+
+------------------------------------------------------------------------------
+                                               *visual_wrap_subsitute_options()*
+        `visual_wrap_subsitute_options`({subtitute_option}, {line_mode})
+Parameters ~
+{subtitute_option} `(nil|string)` if string then use as substitute
+{line_mode} `(bool)` if visual mode is line mode
+	otherwise select from config
+
+------------------------------------------------------------------------------
+                                  *PythonTreeSitterCommands.ts_wrap_at_cursor()*
+        `PythonTreeSitterCommands.ts_wrap_at_cursor`({subtitute_option})
+Parameters ~
+{subtitute_option} `(nil|string)` if string then use as substitute
+	otherwise select from config
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                            *UI*
+                                      `UI`
+Class ~
+{UI}
+Fields ~
+{win_opts} `(table<string, any>)`
+{win} `(number | nil)`
+{buf} `(number | nil)`
+
+------------------------------------------------------------------------------
+                                          *PythonUI.deactivate_system_call_ui()*
+                `PythonUI.deactivate_system_call_ui`({timeout})
+Parameters ~
+{timeout} `(optional)` `(integer)` time in milliseconds to close ui. Defaults to config option
+
+------------------------------------------------------------------------------
+                                            *PythonUI.activate_system_call_ui()*
+                      `PythonUI.activate_system_call_ui`()
+Open a ui window to show the output of the command being called.
+
+------------------------------------------------------------------------------
+                                          *PythonUI.show_system_call_progress()*
+    `PythonUI.show_system_call_progress`({err}, {data}, {flush}, {callback})
+Open a ui w"indow to show the output of the command being called.
+Parameters ~
+{err} `(string)` stderr data
+{data} `(string)` stdout data
+{flush} `(boolean)` clear ui text and replace with full output
+{callback} `(function)` callback function with no arguments
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                       *uv_available_versions()*
+                           `uv_available_versions`()
+Get list of python versions uv can install
+Return ~
+`(table)` list of available python versions from uv
+
+------------------------------------------------------------------------------
+                                                       *uv_installed_versions()*
+                           `uv_installed_versions`()
+Get list of python versions uv has already installed
+Return ~
+`(table)` list of available python versions from uv
+
+------------------------------------------------------------------------------
+                                                          *uv_install_version()*
+                        `uv_install_version`({version})
+Install a python version using uv
+Parameters ~
+{version} `(string)` Python version to install via uv
+
+------------------------------------------------------------------------------
+                                                           *uv_delete_version()*
+                         `uv_delete_version`({version})
+Delete a python version using uv
+Parameters ~
+{version} `(string)` Python version to install via uv
+
+------------------------------------------------------------------------------
+                                                                          *uv()*
+                                  `uv`({opts})
+Execute uv directly with arguments passed by user.
+Parameters ~
+{opts} `(vim.api.keyset.create_user_command.command_args)`
+
+
+==============================================================================
+------------------------------------------------------------------------------
+Class ~
+{VEnv}
+Fields ~
+{source} `(string)`
+{path} `(string)`
+{name} `(string)`
+
+------------------------------------------------------------------------------
+                                                    *PythonVENV.set_venv_path()*
+                       `PythonVENV.set_venv_path`({venv})
+active VEnv, updating venv and PATH variables.
+Parameters ~
+{venv} `(VEnv | nil)`
+
+------------------------------------------------------------------------------
+                                                     *PythonVENV.current_venv()*
+                          `PythonVENV.current_venv`()
+the currently set VEnv object from plugin memory
+Return ~
+`(VEnv | nil)`
+
+------------------------------------------------------------------------------
+                                                               *get_venvs_for()*
+                 `get_venvs_for`({base_path}, {source}, {opts})
+Return ~
+`(VEnv[])`
+
+------------------------------------------------------------------------------
+                                                        *PythonVENV.get_venvs()*
+                      `PythonVENV.get_venvs`({venvs_path})
+a list of venvs from multiple supported sources.
+Return ~
+`(table<VEnv>)` List of venvs found from multiple lists
+
+------------------------------------------------------------------------------
+                                                   *has_high_priority_in_path()*
+                 `has_high_priority_in_path`({first}, {second})
+who appears first in PATH. Returns `true` if `first` appears first and `false` otherwise
+Parameters ~
+{first} `(string|nil)`
+{second} `(string|nil)`
+Return ~
+`(boolean)`
+
+------------------------------------------------------------------------------
+                                               *PythonVENV.load_existing_venv()*
+                       `PythonVENV.load_existing_venv`()
+in a venv that is already set in env vars.
+
+------------------------------------------------------------------------------
+                                                        *PythonVENV.pick_venv()*
+                            `PythonVENV.pick_venv`()
+pick a venv to set as active.
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                     *PythonVENVCreate.delete_venv_from_state()*
+      `PythonVENVCreate.delete_venv_from_state`({venv_key}, {delete_dir})
+venv from state by key
+Parameters ~
+{venv_key} `(string)`
+{delete_dir} `(boolean)` attempt deletion of venv from directory
+
+------------------------------------------------------------------------------
+                                            *PythonVENVCreate.python_set_venv()*
+  `PythonVENVCreate.python_set_venv`({venv_path}, {venv_name}, {venv_source})
+Set venv. Only set venv if its different than current.
+local venv_dir = settings.auto_create_venv_dir
+Parameters ~
+{venv_path} `(string | nil)` full path to venv directory
+{venv_name} `(string)` name of the venv to set
+{venv_source} `(optional)` `(string)` name of the source of the venv. useful in determining conda or venv
+
+------------------------------------------------------------------------------
+                                                    *PythonVENVCreate.uv_sync()*
+  `PythonVENVCreate.uv_sync`({uv_lock_path}, {venv_dir}, {callback}, {script})
+Run uv sync at lock file directory. Set env path when done.
+Parameters ~
+{uv_lock_path} `(string)` full path to pdm lock file
+{venv_dir} `(string)` full path to pdm lock file
+{callback} `(function)`
+{script} `(boolean)` are we installing from a script definition
+
+------------------------------------------------------------------------------
+                                                   *PythonVENVCreate.pdm_sync()*
+      `PythonVENVCreate.pdm_sync`({pdm_lock_path}, {venv_dir}, {callback})
+Run pdm sync at lock file directory. Set env path when done.
+Parameters ~
+{pdm_lock_path} `(string)` full path to pdm lock file
+{venv_dir} `(string)` full path to pdm lock file
+{callback} `(function)`
+
+------------------------------------------------------------------------------
+                                                *PythonVENVCreate.poetry_sync()*
+   `PythonVENVCreate.poetry_sync`({poetry_lock_path}, {venv_dir}, {callback})
+Run pdm sync at lock file directory. Set env path when done.
+Parameters ~
+{poetry_lock_path} `(string)` full path to pdm lock file
+{venv_dir} `(string)` full path to pdm lock file
+{callback} `(function)`
+
+------------------------------------------------------------------------------
+                                      *PythonVENVCreate.pip_install_with_venv()*
+`PythonVENVCreate.pip_install_with_venv`({requirements_path}, {venv_dir}, {callback})
+Create venv with python venv module and pip install at location
+Parameters ~
+{requirements_path} `(string)` full path to requirements.txt, dev-requirements.txt or pyproject.toml
+{venv_dir} `(string)`
+{callback} `(function)`
+
+------------------------------------------------------------------------------
+                                    *PythonVENVCreate.create_venv_with_python()*
+ `PythonVENVCreate.create_venv_with_python`({venv_path}, {python_interpreter})
+the python venv with selected interpreter"
+Parameters ~
+{venv_path} `(string)` path of venv to create
+{python_interpreter} `(string)` path to python executable to use
+
+------------------------------------------------------------------------------
+                                                     *pick_python_interpreter()*
+                          `pick_python_interpreter`()
+Have user select a python interpreter from found options.
+Expected to be running in a coroutine for vim.ui
+Return ~
+`(string | nil)` Path to python interpreter
+
+------------------------------------------------------------------------------
+                                                              *pick_venv_path()*
+                           `pick_venv_path`({detect})
+Have user input the path to the venv they want to create, with a supplied default
+Expected to be running in a coroutine for vim.ui
+Parameters ~
+{detect} `(DetectVEnv)`
+Return ~
+`(string | nil)` Path to venv that user wants to create
+
+------------------------------------------------------------------------------
+                                                           *venv_install_file()*
+                         `venv_install_file`({detect})
+Do Update or Installation of the venv, either update an existing venv or have the user select to
+create a new venv and install dependencies, selecting a python interpreter.
+Parameters ~
+{detect} `(DetectVEnv)`
+
+------------------------------------------------------------------------------
+                                    *PythonVENVCreate.create_and_install_venv()*
+                  `PythonVENVCreate.create_and_install_venv`()
+Automatically create venv directory and use multiple method to auto install dependencies
+Use module level variable Auto_set_python_venv_parent_dir to keep track of the last venv dir, so
+  We don't do the creation process again when you are in the same project.
+
+------------------------------------------------------------------------------
+                                                *PythonVENVCreate.delete_venv()*
+                    `PythonVENVCreate.delete_venv`({select})
+a venv from state and filesystem
+Parameters ~
+{select} `(boolean)`
+
+------------------------------------------------------------------------------
+                        *PythonVENVCreate.user_set_venv_in_state_confirmation()*
+         `PythonVENVCreate.user_set_venv_in_state_confirmation`({venv})
+Interactively set a venv in state.
+This is used when users manually select a venv and want it cached for next run.
+Parameters ~
+{venv} `(VEnv)` venv object to pull from
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                                                    *DetectVEnv*
+                                  `DetectVEnv`
+Class ~
+{DetectVEnv}
+Fields ~
+{dir} `(string)` Current working directory found containing venv
+{venv} `(PythonStateVEnv)` information on the detected venv
+
+------------------------------------------------------------------------------
+                                                     *DetectVEnv:found_in_cwd()*
+                          `DetectVEnv:found_in_cwd`()
+Check if cwd is current in state
+
+------------------------------------------------------------------------------
+                                                  *PythonVENVDetect.search_up()*
+                  `PythonVENVDetect.search_up`({dir_or_file})
+Search for file or directory until we either the top of the git repo or root
+Parameters ~
+{dir_or_file} `(string)` name of directory or file
+Return ~
+`(string | nil)` found either nil or full path of found file/directory
+
+------------------------------------------------------------------------------
+                                   *PythonVENVDetect.search_for_detected_type()*
+                 `PythonVENVDetect.search_for_detected_type`()
+Go through the list of possible dependency sources and return the first match.
+check_paths_ordered_keys is an opinionated list of dependency sources that match
+what the community probably wants detected first.
+Return ~
+`(string | nil)` found
+Return ~
+`(string | nil)` search
+
+------------------------------------------------------------------------------
+                                *PythonVENVDetect.detect_venv_dependency_file()*
+    `PythonVENVDetect.detect_venv_dependency_file`({notify}, {cwd_allowed})
+Return ~
+`(DetectVEnv | nil)`
+Parameters ~
+{notify} `(boolean)` Send notification when venv is not found
+{cwd_allowed} `(optional)` `(boolean)` Allow use of cwd when detecting
+
+
+==============================================================================
+------------------------------------------------------------------------------
+                                   *PythonVENVInterpreters.hatch_interpreters()*
+                 `PythonVENVInterpreters.hatch_interpreters`()
+
+Return ~
+`(table)` found_hatch_pythons list of python interpreters found by hatch
+
+------------------------------------------------------------------------------
+                                      *PythonVENVInterpreters.uv_interpreters()*
+                   `PythonVENVInterpreters.uv_interpreters`()
+
+Return ~
+`(table)` found_uv_pythons list of python interpreters found by uv
+
+------------------------------------------------------------------------------
+                                  *PythonVENVInterpreters.python_interpreters()*
+                 `PythonVENVInterpreters.python_interpreters`()
+Return ~
+`(table<string>)` list of potential python interpreters to use
+
+
+ vim:tw=78:ts=8:noet:ft=help:norl:

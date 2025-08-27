@@ -17,11 +17,12 @@ if #vim.api.nvim_list_uis() == 0 then
     "deps/LuaSnip",
   }
   local runtime_path = vim.fn.join(runtime_dependencies, ",")
-  vim.cmd('set rtp+=' .. runtime_path)
+  vim.cmd("set rtp+=" .. runtime_path)
 
   -- Set up 'mini.test'
-  require('luasnip.extras.fmt')
-  require('luasnip.nodes.absolute_indexer')
-  require('nvim-treesitter.locals')
-  require('mini.test').setup()
+  require("luasnip.extras.fmt")
+  require("luasnip.nodes.absolute_indexer")
+  require("nvim-treesitter.locals")
+  require("mini.test").setup()
+  require("mini.doc").setup()
 end

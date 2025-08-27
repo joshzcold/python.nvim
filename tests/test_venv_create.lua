@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup({})]])
     end,
@@ -21,11 +21,10 @@ local T = new_set({
   },
 })
 
-
-T['create'] = MiniTest.new_set({ n_retry = 3 })
+T["create"] = MiniTest.new_set({ n_retry = 3 })
 
 -- NOTE: requires python3 and python3-venv installed on system
-T['create']['venv'] = function()
+T["create"]["venv"] = function()
   child.lua("create = require('python.venv.create')")
   child.cmd("cd examples/python_projects/uv")
   child.cmd("!rm -rf .venv")
@@ -36,7 +35,7 @@ T['create']['venv'] = function()
 end
 
 -- NOTE: requires uv installed on system
-T['create']['uv_sync'] = function()
+T["create"]["uv_sync"] = function()
   child.lua("create = require('python.venv.create')")
   child.cmd("cd examples/python_projects/uv")
   child.cmd("!rm -rf .venv")
@@ -44,8 +43,8 @@ T['create']['uv_sync'] = function()
   child.lua("create.create_venv_with_python('.venv', 'python3')")
   child.lua("create.uv_sync('uv.lock', '.venv', function()end, false)")
 
-  local dep_path = vim.fn.system(
-    [[examples/python_projects/uv/.venv/bin/python -c 'import sys; print(sys.path[-1], end="")']])
+  local dep_path =
+    vim.fn.system([[examples/python_projects/uv/.venv/bin/python -c 'import sys; print(sys.path[-1], end="")']])
 
   assert(string.find(dep_path, "python_projects", 1, true))
 

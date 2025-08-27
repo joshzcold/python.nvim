@@ -12,7 +12,7 @@ local T = new_set({
     -- This will be executed before every (even nested) case
     pre_case = function()
       -- Restart child process with custom 'init.lua' script
-      child.restart({ '-u', 'scripts/minimal_init.lua' })
+      child.restart({ "-u", "scripts/minimal_init.lua" })
       -- Load tested plugin
       child.lua([[require('python').setup({ python_lua_snippets = true })]])
     end,
@@ -21,7 +21,7 @@ local T = new_set({
   },
 })
 
-T['snips will load'] = function()
+T["snips will load"] = function()
   child.lua([[M = require('python.snip')]])
   child.lua([[M.load_snippets()]])
   eq(child.lua([[return vim.g._python_nvim_snippets_loaded]]), true)

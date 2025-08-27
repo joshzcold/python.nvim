@@ -1,8 +1,7 @@
 local ui = require("python.ui")
-local M = {}
+local PythonUVCommands = {}
 
-
-function M.check_uv()
+function PythonUVCommands.check_uv()
   if vim.fn.executable("uv") == 0 then
     return false
   end
@@ -13,14 +12,16 @@ end
 ---@return table list of available python versions from uv
 local function uv_available_versions()
   local output = {}
-  vim.system({ "uv", "python", "list", "--only-downloads", "--output-format", "json" }, {}, function(obj)
-    local found_available = {}
-    local available_line_shown = false
-    local python_json = vim.json.decode(obj.stdout)
-    for _, pobj in pairs(python_json) do
-      table.insert(output, 1, pobj['key'])
-    end
-  end):wait()
+  vim
+    .system({ "uv", "python", "list", "--only-downloads", "--output-format", "json" }, {}, function(obj)
+      local found_available = {}
+      local available_line_shown = false
+      local python_json = vim.json.decode(obj.stdout)
+      for _, pobj in pairs(python_json) do
+        table.insert(output, 1, pobj["key"])
+      end
+    end)
+    :wait()
   return output
 end
 
@@ -28,77 +29,67 @@ end
 ---@return table list of available python versions from uv
 local function uv_installed_versions()
   local output = {}
-  vim.system({ "uv", "python", "list", "--only-installed", "--output-format", "json" }, {}, function(obj)
-    local found_available = {}
-    local available_line_shown = false
-    local python_json = vim.json.decode(obj.stdout)
-    for _, pobj in pairs(python_json) do
-      if string.find(pobj['path'], "uv") then
-        table.insert(output, 1, pobj['key'])
+  vim
+    .system({ "uv", "python", "list", "--only-installed", "--output-format", "json" }, {}, function(obj)
+      local found_available = {}
+      local available_line_shown = false
+      local python_json = vim.json.decode(obj.stdout)
+      for _, pobj in pairs(python_json) do
+        if string.find(pobj["path"], "uv") then
+          table.insert(output, 1, pobj["key"])
+        end
       end
-    end
-  end):wait()
+    end)
+    :wait()
   return output
 end
 
 --- Install a python version using uv
 ---@param version string Python version to install via uv
 local function uv_install_version(version)
-  vim.schedule(
-    function()
-      vim.system(
-        { "uv", "python", "install", version },
-        {
-          stdout = ui.show_system_call_progress
-        },
-        function(obj2)
-          vim.schedule(function()
-            if obj2.code ~= 0 then
-              vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
-              ui.deactivate_system_call_ui(10000)
-            else
-              ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
-                ui.deactivate_system_call_ui()
-              end)
-            end
+  vim.schedule(function()
+    vim.system({ "uv", "python", "install", version }, {
+      stdout = ui.show_system_call_progress,
+    }, function(obj2)
+      vim.schedule(function()
+        if obj2.code ~= 0 then
+          vim.notify_once("python.nvim: " .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+          ui.deactivate_system_call_ui(10000)
+        else
+          ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+            ui.deactivate_system_call_ui()
           end)
         end
-      )
-      vim.schedule(function()
-        ui.activate_system_call_ui()
       end)
-    end
-  )
+    end)
+    vim.schedule(function()
+      ui.activate_system_call_ui()
+    end)
+  end)
 end
 
 --- Delete a python version using uv
 ---@param version string Python version to install via uv
 local function uv_delete_version(version)
-  vim.schedule(
-    function()
-      vim.system(
-        { "uv", "python", "uninstall", version },
-        {
-          stdout = ui.show_system_call_progress
-        },
-        function(obj2)
-          vim.schedule(function()
-            if obj2.code ~= 0 then
-              vim.notify_once('python.nvim: ' .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
-              ui.deactivate_system_call_ui(10000)
-            else
-              ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
-                ui.deactivate_system_call_ui()
-              end)
-            end
+  vim.schedule(function()
+    vim.system({ "uv", "python", "uninstall", version }, {
+      stdout = ui.show_system_call_progress,
+    }, function(obj2)
+      vim.schedule(function()
+        if obj2.code ~= 0 then
+          vim.notify_once("python.nvim: " .. vim.inspect(obj2.stderr), vim.log.levels.ERROR)
+          ui.deactivate_system_call_ui(10000)
+        else
+          ui.show_system_call_progress(obj2.stderr, obj2.stdout, true, function()
+            ui.deactivate_system_call_ui()
           end)
         end
-      )
-      vim.schedule(function()
-        ui.activate_system_call_ui()
       end)
-    end
-  )
+    end)
+    vim.schedule(function()
+      ui.activate_system_call_ui()
+    end)
+  end)
 end
 
 --- Execute uv directly with arguments passed by user.
@@ -114,36 +105,30 @@ local function uv(opts)
     table.insert(args, fa)
     ::continue::
   end
-  local cmd = { 'uv', unpack(args) }
+  local cmd = { "uv", unpack(args) }
   vim.schedule(function()
-    vim.system(
-      cmd,
-      {
-        cwd = vim.fn.getcwd(),
-        stdout = ui.show_system_call_progress,
-        stderr = ui.show_system_call_progress,
-      },
-      function(obj)
-        vim.schedule(
-          function()
-            if obj.code ~= 0 then
-              vim.notify_once('python.nvim: ' .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
-              return
-            end
-            ui.show_system_call_progress(obj.stderr, obj.stdout, true, function()
-              ui.deactivate_system_call_ui()
-            end)
-          end
-        )
-      end
-    )
+    vim.system(cmd, {
+      cwd = vim.fn.getcwd(),
+      stdout = ui.show_system_call_progress,
+      stderr = ui.show_system_call_progress,
+    }, function(obj)
+      vim.schedule(function()
+        if obj.code ~= 0 then
+          vim.notify_once("python.nvim: " .. vim.inspect(obj.stderr), vim.log.levels.ERROR)
+          return
+        end
+        ui.show_system_call_progress(obj.stderr, obj.stdout, true, function()
+          ui.deactivate_system_call_ui()
+        end)
+      end)
+    end)
     ui.activate_system_call_ui()
   end)
 end
 
 local function uv_completion(arglead, cmdlin, cursorpos)
   local args = vim.split(cmdlin, " ")
-  local cmd = { 'uv' }
+  local cmd = { "uv" }
 
   for _, arg in pairs(args) do
     if arg == "UV" or arg == "" then
@@ -175,8 +160,8 @@ local function uv_completion(arglead, cmdlin, cursorpos)
   end
 
   local patterns = {
-    "(%-%-%w+[%w-]*)",   -- Matching '--argmument' in the output
-    "(%-%w),",           -- Matching '-f' flag in the output
+    "(%-%-%w+[%w-]*)", -- Matching '--argmument' in the output
+    "(%-%w),", -- Matching '-f' flag in the output
     "\n%s%s([a-z-]+)%s", -- Matching '  subcommand' flag in the output
   }
 
@@ -189,7 +174,7 @@ local function uv_completion(arglead, cmdlin, cursorpos)
   return result
 end
 
-function M.uv_delete_python()
+function PythonUVCommands.uv_delete_python()
   local versions = uv_installed_versions()
   vim.ui.select(versions, { prompt = "Select a python version to delete via uv: " }, function(selection)
     if not selection then
@@ -199,7 +184,7 @@ function M.uv_delete_python()
   end)
 end
 
-function M.uv_install_python()
+function PythonUVCommands.uv_install_python()
   local versions = uv_available_versions()
   vim.ui.select(versions, { prompt = "Select a python version to install via uv: " }, function(selection)
     if not selection then
@@ -209,8 +194,8 @@ function M.uv_install_python()
   end)
 end
 
-function M.load_commands()
-  if not M.check_uv() then
+function PythonUVCommands.load_commands()
+  if not PythonUVCommands.check_uv() then
     return
   end
   -- Special user command to pass through uv commands
@@ -219,12 +204,8 @@ function M.load_commands()
   end, {
     desc = "python.nvim: pass-through uv commands.",
     complete = uv_completion,
-    nargs = "*"
+    nargs = "*",
   })
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.uv")[k]
-  end,
-})
+return PythonUVCommands

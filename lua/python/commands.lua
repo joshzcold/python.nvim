@@ -1,5 +1,5 @@
 -- python.nvim commands
-local M = {}
+local PythonCommands = {}
 
 ---@class PythonSubcommand
 ---@field impl fun(args:string[], opts: table) The command implementation
@@ -44,17 +44,18 @@ local subcommand_tbl = {
         "test_file",
         "test_debug",
         "test_method_debug",
-        "test_file_debug"
+        "test_file_debug",
       }
 
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   dap = {
     impl = function(args, _)
@@ -69,14 +70,15 @@ local subcommand_tbl = {
     complete = function(subcmd_arg_lead)
       local install_args = {}
 
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   hatch = {
     impl = function(args, _)
@@ -109,14 +111,15 @@ local subcommand_tbl = {
         "list",
       }
 
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   lsp = {
     impl = function(args, _)
@@ -136,14 +139,15 @@ local subcommand_tbl = {
       if subcmd_arg_lead:find("pyright_change_type_checking_mode") ~= nil then
         return { "off", "basic", "standard", "strict", "all" }
       end
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   uv = {
     impl = function(args, _)
@@ -169,14 +173,15 @@ local subcommand_tbl = {
         "install_python",
         "delete_python",
       }
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   treesitter = {
     impl = function(args, _)
@@ -205,17 +210,18 @@ local subcommand_tbl = {
         "test",
       }
       if subcmd_arg_lead:find("wrap_cursor") ~= nil then
-        local config = require('python.config')
+        local config = require("python.config")
         return config.treesitter.functions.wrapper.substitute_options
       end
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
   venv = {
     impl = function(args, _)
@@ -252,14 +258,15 @@ local subcommand_tbl = {
         "delete",
         "delete_select",
       }
-      return vim.iter(install_args)
-          :filter(function(install_arg)
-            -- If the user has typed `:Rocks install ne`,
-            -- this will match 'neorg'
-            return install_arg:find(subcmd_arg_lead) ~= nil
-          end)
-          :totable()
-    end
+      return vim
+        .iter(install_args)
+        :filter(function(install_arg)
+          -- If the user has typed `:Rocks install ne`,
+          -- this will match 'neorg'
+          return install_arg:find(subcmd_arg_lead) ~= nil
+        end)
+        :totable()
+    end,
   },
 }
 
@@ -278,7 +285,7 @@ local function python_cmd(opts)
   subcommand.impl(args, opts)
 end
 
-function M.load_commands()
+function PythonCommands.load_commands()
   -- NOTE: the options will vary, based on your use case.
   vim.api.nvim_create_user_command("Python", python_cmd, {
     nargs = "+",
@@ -286,11 +293,7 @@ function M.load_commands()
     complete = function(arg_lead, cmdline, _)
       -- Get the subcommand.
       local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Python[!]*%s(%S+)%s(.*)$")
-      if subcmd_key
-          and subcmd_arg_lead
-          and subcommand_tbl[subcmd_key]
-          and subcommand_tbl[subcmd_key].complete
-      then
+      if subcmd_key and subcmd_arg_lead and subcommand_tbl[subcmd_key] and subcommand_tbl[subcmd_key].complete then
         -- The subcommand has completions. Return them.
         return subcommand_tbl[subcmd_key].complete(subcmd_arg_lead)
       end
@@ -298,19 +301,16 @@ function M.load_commands()
       if cmdline:match("^['<,'>]*Python[!]*%s+%w*$") then
         -- Filter subcommands that match
         local subcommand_keys = vim.tbl_keys(subcommand_tbl)
-        return vim.iter(subcommand_keys)
-            :filter(function(key)
-              return key:find(arg_lead) ~= nil
-            end)
-            :totable()
+        return vim
+          .iter(subcommand_keys)
+          :filter(function(key)
+            return key:find(arg_lead) ~= nil
+          end)
+          :totable()
       end
     end,
     bang = true, -- If you want to support ! modifiers
   })
 end
 
-return setmetatable(M, {
-  __index = function(_, k)
-    return require("python.commands")[k]
-  end,
-})
+return PythonCommands
