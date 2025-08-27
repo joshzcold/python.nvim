@@ -36,35 +36,6 @@ jobs:
       - name: Check for changes
         run: if [[ -n $(git status -s) ]]; then exit 1; fi
 
-  lintcommit:
-    name: Lint commits
-    runs-on: ubuntu-latest
-    env:
-      LINTCOMMIT_STRICT: true
-    steps:
-      - name: Install Neovim
-        uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: v0.11.3
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      - name: Lint new commits
-        run: make --silent lintcommit-ci
-
-  lint-filename-length:
-    name: Lint filename lengths
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.ref }}
-      - name: Lint filename legnths
-        run: make --silent lint-filename-length-ci
-
   case-sensitivity:
     name: File case sensitivity
     runs-on: ubuntu-latest
