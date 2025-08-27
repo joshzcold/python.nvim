@@ -1,8 +1,8 @@
-local PythonState = {}
+local PythonStateM = {}
 
 ---@class PythonStateVEnv
----@field python_interpreter string | nil
----@field venv_path string | nil
+---@field python_interpreter string
+---@field venv_path string
 ---@field install_method string
 ---@field install_file string
 ---@field source string
@@ -32,14 +32,13 @@ Should look like this
     }
 }
 
-]]
---
+]] --
 ---@class PythonState
 ---@field venvs table<string, PythonStateVEnv>
 ---@field dap table<string, dap.Configuration>
 PythonState = PythonState or {
   venvs = {},
-  dap = {},
+  dap = {}
 }
 
 local data_path = vim.fn.stdpath("data")
@@ -47,7 +46,7 @@ local state_dir = vim.fs.joinpath(data_path, "python.nvim")
 local state_path = vim.fs.joinpath(state_dir, "state.json")
 
 ---@return PythonState
-function PythonState.State()
+function PythonStateM.State()
   if vim.fn.isdirectory(state_dir) == 0 then
     if vim.fn.mkdir(state_dir, "p") ~= 1 then
       error(string.format("python.nvim: mkdirp error creating directory: %s", state_dir))
@@ -97,9 +96,9 @@ local function merge_tables(...)
 end
 
 ---@param new_state PythonState
-function PythonState.save(new_state)
+function PythonStateM.save(new_state)
   local result_state = merge_tables(PythonState, new_state)
-  vim.fn.writefile({ vim.json.encode(result_state) }, state_path, "s")
+  vim.fn.writefile({vim.json.encode(result_state)}, state_path, "s")
 end
 
-return PythonState
+return PythonStateM
