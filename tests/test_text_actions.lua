@@ -25,7 +25,6 @@ local get_lines = function()
   return child.api.nvim_buf_get_lines(0, 0, -1, true)
 end
 
-
 T["text_actions"] = MiniTest.new_set({
   hooks = {
     pre_case = function()
@@ -34,7 +33,7 @@ T["text_actions"] = MiniTest.new_set({
   },
 })
 
-T['text_actions']['insert_f_string'] = function()
+T["text_actions"]["insert_f_string"] = function()
   child.type_keys("i", [[print("{foo}")]], "<left><esc>")
 
   eq(get_lines(), { [[print(f"{foo}")]] })
