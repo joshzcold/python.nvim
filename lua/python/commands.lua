@@ -199,7 +199,12 @@ local subcommand_tbl = {
       end
 
       if command == "wrap_cursor" then
-        ts_cmd.ts_wrap_at_cursor(args[#args])
+        -- Account for if the last argument is the command or an actual arg
+        local wrap_arg = args[#args]
+        if wrap_arg == "wrap_cursor" then
+          wrap_arg = ""
+        end
+        ts_cmd.ts_wrap_at_cursor(wrap_arg)
         return
       end
     end,
@@ -289,7 +294,7 @@ function PythonCommands.load_commands()
   -- NOTE: the options will vary, based on your use case.
   vim.api.nvim_create_user_command("Python", python_cmd, {
     nargs = "+",
-    desc = "My awesome command with subcommand completions",
+    desc = "Python.nvim commands",
     complete = function(arg_lead, cmdline, _)
       -- Get the subcommand.
       local subcmd_key, subcmd_arg_lead = cmdline:match("^['<,'>]*Python[!]*%s(%S+)%s(.*)$")
@@ -310,6 +315,7 @@ function PythonCommands.load_commands()
       end
     end,
     bang = true, -- If you want to support ! modifiers
+    range = true, -- Support some visual command
   })
 end
 
