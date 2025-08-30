@@ -56,5 +56,12 @@ T["wrap_cursor"]["with_selection"] = function()
   eq(get_lines(), { [[print("TEST")]] })
 end
 
+T["enumerate"] = function()
+  child.cmd("e _not_existing_new_buffer.py")
+  child.type_keys("cc", "for i in [1, 2, 3]:", "<Esc>", "0")
+  child.type_keys([[:Python treesitter toggle_enumerate<cr>]])
+  eq(get_lines(), { "for idx, i in enumerate([1, 2, 3]):" })
+end
+
 -- Return test set which will be collected and execute inside `MiniTest.run()`
 return T
