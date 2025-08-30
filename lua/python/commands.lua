@@ -315,6 +315,7 @@ function PythonCommands.load_commands()
       end
     end,
     bang = true, -- If you want to support ! modifiers
+    range = true, -- Support some visual command
   })
 end
 
