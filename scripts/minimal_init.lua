@@ -29,9 +29,9 @@ require("nvim-treesitter.configs").setup({
   auto_install = true,
   ignore_install = {},
   ensure_installed = {
-    "python"
+    "python",
   },
   highlight = {
-    enable = true
-  }
+    enable = true,
+  },
 })

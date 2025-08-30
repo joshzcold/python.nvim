@@ -21,38 +21,39 @@ local T = new_set({
   },
 })
 
+local get_lines = function()
+  return child.api.nvim_buf_get_lines(0, 0, -1, true)
+end
 
-local get_lines = function() return child.api.nvim_buf_get_lines(0, 0, -1, true) end
-
-T['wrap_cursor'] = MiniTest.new_set({
+T["wrap_cursor"] = MiniTest.new_set({
   hooks = {
     pre_case = function()
       child.cmd("e _not_existing_new_buffer.py")
       child.type_keys("cc", [["TEST"]], "<Esc>", "0")
     end,
-  }
+  },
 })
 
-T['wrap_cursor']['normal'] = function()
+T["wrap_cursor"]["normal"] = function()
   child.cmd("Python treesitter wrap_cursor test(%s)")
-  eq(get_lines(), {[[test("TEST")]]})
+  eq(get_lines(), { [[test("TEST")]] })
 end
 
-T['wrap_cursor']['visual'] = function()
+T["wrap_cursor"]["visual"] = function()
   child.type_keys("l", "v", "$")
   child.type_keys([[:Python treesitter wrap_cursor test(%s)<cr>]])
-  eq(get_lines(), {[["test(TEST")]]})
+  eq(get_lines(), { [["test(TEST")]] })
 end
 
-T['wrap_cursor']['visual_with_selection'] = function()
+T["wrap_cursor"]["visual_with_selection"] = function()
   child.type_keys("l", "v", "$")
   child.type_keys([[:Python treesitter wrap_cursor<cr>1<cr>]])
-  eq(get_lines(), {[["print(TEST")]]})
+  eq(get_lines(), { [["print(TEST")]] })
 end
 
-T['wrap_cursor']['with_selection'] = function()
+T["wrap_cursor"]["with_selection"] = function()
   child.type_keys([[:Python treesitter wrap_cursor<cr>1<cr>]])
-  eq(get_lines(), {[[print("TEST")]]})
+  eq(get_lines(), { [[print("TEST")]] })
 end
 
 -- Return test set which will be collected and execute inside `MiniTest.run()`
