@@ -8,9 +8,9 @@ PythonConfig.setup()	python.txt	/*PythonConfig.setup()*
 PythonDap.prepare_debugpy()	python.txt	/*PythonDap.prepare_debugpy()*
 PythonLSPCommands.pyright_change_type_checking()	python.txt	/*PythonLSPCommands.pyright_change_type_checking()*
 PythonState	python.txt	/*PythonState*
-PythonState.State()	python.txt	/*PythonState.State()*
-PythonState.save()	python.txt	/*PythonState.save()*
 PythonStateDap	python.txt	/*PythonStateDap*
+PythonStateM.State()	python.txt	/*PythonStateM.State()*
+PythonStateM.save()	python.txt	/*PythonStateM.save()*
 PythonStateVEnv	python.txt	/*PythonStateVEnv*
 PythonTreeSitterCommands.ts_wrap_at_cursor()	python.txt	/*PythonTreeSitterCommands.ts_wrap_at_cursor()*
 PythonUI.activate_system_call_ui()	python.txt	/*PythonUI.activate_system_call_ui()*

@@ -295,8 +295,8 @@ Parameters ~
 Class ~
 {PythonStateVEnv}
 Fields ~
-{python_interpreter} `(string | nil)`
-{venv_path} `(string | nil)`
+{python_interpreter} `(string)`
+{venv_path} `(string)`
 {install_method} `(string)`
 {install_file} `(string)`
 {source} `(string)`
@@ -320,14 +320,14 @@ Fields ~
 {dap} `(table<string, dap.Configuration>)`
 
 ------------------------------------------------------------------------------
-                                                           *PythonState.State()*
-                             `PythonState.State`()
+                                                          *PythonStateM.State()*
+                             `PythonStateM.State`()
 Return ~
 `(PythonState)`
 
 ------------------------------------------------------------------------------
-                                                            *PythonState.save()*
-                        `PythonState.save`({new_state})
+                                                           *PythonStateM.save()*
+                        `PythonStateM.save`({new_state})
 Parameters ~
 {new_state} `(PythonState)`
 
