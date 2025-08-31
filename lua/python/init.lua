@@ -43,8 +43,8 @@ function Python.setup(opts)
   })
 
   -- Load up commands for users
-  vim.api.nvim_create_autocmd({ "FileType" }, {
-    pattern = config.command_setup_filetypes,
+  vim.api.nvim_create_autocmd({ "BufEnter" }, {
+    pattern = config.command_setup_buf_pattern,
     desc = "python.nvim: Loading commands for python",
     group = id,
     callback = function()

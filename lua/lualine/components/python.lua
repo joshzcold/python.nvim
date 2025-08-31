@@ -11,9 +11,16 @@ function M:init(options)
 end
 
 function M:update_status()
-  local venv = require("python.venv").current_venv()
-  if venv then
-    return venv.name
+  local venv_path = vim.fn.getenv("VIRTUAL_ENV")
+  local conda_env = vim.fn.getenv("CONDA_DEFAULT_ENV")
+
+  if venv_path ~= vim.NIL then
+    if vim.fs.basename(venv_path) == ".venv" then
+      return vim.fs.basename(vim.fs.dirname(venv_path))
+    end
+    return vim.fs.basename(venv_path)
+  elseif conda_env ~= nil then
+    return conda_env
   else
     return "no venv"
   end

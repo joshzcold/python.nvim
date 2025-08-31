@@ -128,7 +128,6 @@ end
 
 function PythonHatchCommands.hatch_list_python()
   local versions = hatch_installed_versions()
-  vim.print(versions)
 end
 
 function PythonHatchCommands.hatch_delete_python()

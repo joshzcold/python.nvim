@@ -39,7 +39,6 @@ function PythonVENVInterpreters.python_interpreters()
   if IS_WINDOWS then
     return { "python3" }
   end
-  -- TODO for macos we probably need to look in other places other than homebrew
   local pythons = vim.fn.globpath("/usr/bin/", "python3.*", false, true)
 
   if IS_MACOS then
