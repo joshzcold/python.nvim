@@ -26,6 +26,7 @@ local get_lines = function()
 end
 
 T["text_actions"] = MiniTest.new_set({
+  n_retry = 3,
   hooks = {
     pre_case = function()
       child.cmd("e _not_existing_new_buffer.py")

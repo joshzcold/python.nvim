@@ -71,7 +71,7 @@ function PythonVENVCreate.python_set_venv(venv_path, venv_name, venv_source)
     if current_venv then
       current_venv_name = current_venv.name
     end
-    if vim.fs.basename(venv_path) ~= current_venv_name then
+    if vim.fs.basename(venv_path) and current_venv_name ~= venv_name then
       if not venv_source then
         venv_source = "venv"
       end

@@ -21,7 +21,7 @@ require("nvim-treesitter.locals")
 require("nvim-treesitter").setup()
 require("mini.test").setup()
 require("mini.doc").setup()
-local ts_configs = require("nvim-treesitter.configs").setup({
+require("nvim-treesitter.configs").setup({
   modules = {
     "highlight",
   },
