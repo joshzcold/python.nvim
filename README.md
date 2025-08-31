@@ -1,10 +1,12 @@
-# python.nvim
 
-![Python.nvim Plugin Logo](./doc/python_nvim_logo.svg) 
+<div align="center">
+<img src="./doc/python_nvim_logo.svg" alt="logo" width="200"/>
+  
+<h2>Python Tools for Neovim</h2>
 
-Python Tools for Neovim
-
-https://github.com/user-attachments/assets/025f8475-e946-4875-bc91-53508ea5d3fa
+</div>
+ 
+https://github.com/user-attachments/assets/5a637270-3785-4929-828b-628d553b5732
 
 ## Installation
 
