@@ -1,8 +1,8 @@
 # python.nvim
 
-Python Tools for Neovim
-
 ![Python.nvim Plugin Logo](./doc/python_nvim_logo.svg) 
+
+Python Tools for Neovim
 
 https://github.com/user-attachments/assets/025f8475-e946-4875-bc91-53508ea5d3fa
 
