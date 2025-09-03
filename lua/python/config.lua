@@ -82,7 +82,11 @@ PythonConfig.defaults = {
       ["<leader>ptt"] = { "n", "<cmd>Python test test<cr>", { desc = "python.nvim: python run test suite" } },
       ["<leader>ptm"] = { "n", "<cmd>Python test test_method<cr>", { desc = "python.nvim: python run test method" } },
       ["<leader>ptf"] = { "n", "<cmd>Python test test_file<cr>", { desc = "python.nvim: python run test file" } },
-      ["<leader>ptdd"] = { "n", "<cmd>Python test test_debug<cr>", { desc = "python.nvim: run test suite in debug mode." } },
+      ["<leader>ptdd"] = {
+        "n",
+        "<cmd>Python test test_debug<cr>",
+        { desc = "python.nvim: run test suite in debug mode." },
+      },
       ["<leader>ptdm"] = {
         "n",
         "<cmd>Python test test_method_debug<cr>",
