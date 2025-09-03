@@ -296,9 +296,9 @@ return {
 | ------------------------ | ------------------------------------- | ------------------------------------------------------------------------------------ |
 | `<leader>pi`             | `:Python venv install`                | Create a venv and install dependencies if a supported python package format is found |
 | `<leader>pd`             | `:Python dap`                         | Create and save a new Dap configuration                                              |
-| `<leader>ptt`            | `:Python test`                        | Run Suite of tests with `neotest`                                                    |
-| `<leader>ptm`            | `:Python test_method`                 | Run test function/method with `neotest`                                              |
-| `<leader>ptf`            | `:Python test_file`                   | Run test file with `neotest`                                                         |
+| `<leader>ptt`            | `:Python test test`                        | Run Suite of tests with `neotest`                                                    |
+| `<leader>ptm`            | `:Python test test_method`                 | Run test function/method with `neotest`                                              |
+| `<leader>ptf`            | `:Python test test_file`                   | Run test file with `neotest`                                                         |
 | `<leader>ppe`            | `:Python treesitter toggle_enumerate` | Turn a regular list into `enumerate()` list and back                                 |
 | `<leader>ppw`            | `:Python treesitter wrap_cursor`      | Wrap treesitter indentifiers in a pattern for quick injection.                       |
 | visual mode `<leader>pw` | `:Python treesitter wrap_cursor`      | Wrap treesitter indentifiers in visual mode                                          |
@@ -309,9 +309,9 @@ return {
 | -------------- | ---------------------------- | -------------------------------------------------------------------------------------- |
 | `<leader>ped`  | `:Python venv delete_select` | Select a venv to delete from `python.nvim` state                                       |
 | `<leader>peD`  | `:Python venv delete`        | Delete current selected venv in project in `python.nvim` state                         |
-| `<leader>ptdd` | `:Python test_debug`         | Run Suite of tests with `neotest` in `dap` mode with `dap-python`                      |
-| `<leader>ptdm` | `:Python test_method_debug`  | Run test function/method with `neotest` in `dap` mode with `dap-python`                |
-| `<leader>ptdf` | `:Python test_file_debug`    | Run test file with `neotest` in `dap` mode with `dap-python`                           |
+| `<leader>ptdd` | `:Python test test_debug`         | Run Suite of tests with `neotest` in `dap` mode with `dap-python`                      |
+| `<leader>ptdm` | `:Python test test_method_debug`  | Run test function/method with `neotest` in `dap` mode with `dap-python`                |
+| `<leader>ptdf` | `:Python test test_file_debug`    | Run test file with `neotest` in `dap` mode with `dap-python`                           |
 | `none`         | `:Python hatch list`         | List python interpreters installed by [hatch](https://hatch.pypa.io/latest/)           |
 | `none`         | `:Python hatch install`      | Install a python interpreter using [hatch](https://hatch.pypa.io/latest/)              |
 | `none`         | `:Python hatch delete`       | Delete a python interpreter from [hatch](https://hatch.pypa.io/latest/)                |
