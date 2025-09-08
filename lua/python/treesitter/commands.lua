@@ -209,6 +209,26 @@ function PythonTreeSitterCommands.ts_wrap_at_cursor(subtitute_option)
   end)
 end
 
+--- 
+---@param node TSNode the current ts node we are checking for parents
+---@return string callText check if this node has a "call" type node 3 parents up
+--- this is used for checking on "".format() calls for strings.
+local function checkForFStringCallParent(node)
+  local callStatus, callText = pcall(function()
+    local callNode = node:parent():parent():parent()
+    if callNode then
+      local text = getNodeText(callNode)
+      return text
+    end
+    return ""
+  end) -- Get potential function call on string for .format()
+
+  if not callStatus then
+    callText = ""
+  end
+  return callText
+end
+
 function PythonTreeSitterCommands.pythonFStr()
   local maxCharacters = 200 -- safeguard to prevent converting invalid code
   local node = getNodeAtCursor()
@@ -217,6 +237,8 @@ function PythonTreeSitterCommands.pythonFStr()
   end
 
   local strNode
+  local callText = checkForFStringCallParent(node)
+
   if node:type() == "string" then
     strNode = node
   elseif node:type():find("^string_") then
@@ -239,10 +261,12 @@ function PythonTreeSitterCommands.pythonFStr()
     return
   end -- safeguard on converting invalid code
 
-  local isFString = text:find("^r?f") -- rf -> raw-formatted-string
+  local isFormatString = callText:find([[^.*["']%.format%(]])
+  local isRString = text:find("^r")
+  local isFString = text:find("^r?f")           -- rf -> raw-formatted-string
   local hasBraces = text:find("{.-[^%d,%s].-}") -- nonRegex-braces, see #12 and #15
 
-  if not isFString and hasBraces then
+  if (not isFString and not isFormatString and not isRString) and hasBraces then
     text = "f" .. text
     replaceNodeText(strNode, text)
   elseif isFString and not hasBraces then
