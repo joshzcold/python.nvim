@@ -209,7 +209,7 @@ function PythonTreeSitterCommands.ts_wrap_at_cursor(subtitute_option)
   end)
 end
 
---- 
+---
 ---@param node TSNode the current ts node we are checking for parents
 ---@return string callText check if this node has a "call" type node 3 parents up
 --- this is used for checking on "".format() calls for strings.
@@ -263,7 +263,7 @@ function PythonTreeSitterCommands.pythonFStr()
 
   local isFormatString = callText:find([[^.*["']%.format%(]])
   local isRString = text:find("^r")
-  local isFString = text:find("^r?f")           -- rf -> raw-formatted-string
+  local isFString = text:find("^r?f") -- rf -> raw-formatted-string
   local hasBraces = text:find("{.-[^%d,%s].-}") -- nonRegex-braces, see #12 and #15
 
   if (not isFString and not isFormatString and not isRString) and hasBraces then
