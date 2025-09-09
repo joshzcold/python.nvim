@@ -25,19 +25,31 @@ local get_lines = function()
   return child.api.nvim_buf_get_lines(0, 0, -1, true)
 end
 
-T["text_actions"] = MiniTest.new_set({
-  n_retry = 3,
+T["f-string"] = MiniTest.new_set({
   hooks = {
     pre_case = function()
       child.cmd("e _not_existing_new_buffer.py")
+      child.type_keys("cc", [["TEST"]], "<Esc>", "0")
     end,
   },
 })
 
-T["text_actions"]["insert_f_string"] = function()
-  child.type_keys("i", [[print("{foo}")]], "<left><esc>")
+T["f-string"]["insert f string"] = function()
+  child.cmd("e! _not_existing_new_buffer.py")
+  child.type_keys("cc", [["{foo}"]], "<Esc>", "hh", "i", "<Esc>")
+  eq(get_lines(), { [[f"{foo}"]] })
+end
 
-  eq(get_lines(), { [[print(f"{foo}")]] })
+T["f-string"]["skip on r"] = function()
+  child.cmd("e! _not_existing_new_buffer.py")
+  child.type_keys("cc", [[r"{foo}"]], "<Esc>", "hh", "i", "<Esc>")
+  eq(get_lines(), { [[r"{foo}"]] })
+end
+
+T["f-string"]["skip on format"] = function()
+  child.cmd("e! _not_existing_new_buffer.py")
+  child.type_keys("cc", [["{foo}".format()]], "<Esc>", "0lll", "i", "<Esc>")
+  eq(get_lines(), { [["{foo}".format()]] })
 end
 
 -- Return test set which will be collected and execute inside `MiniTest.run()`
