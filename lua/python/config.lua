@@ -17,7 +17,7 @@ PythonConfig.defaults = {
   -- Path for venvs picker
   venvs_path = vim.fn.expand("~/.virtualenvs"),
   -- Something to do after setting an environment
-  post_set_venv = nil,
+  post_set_venv = false,
   -- base path for creating new venvs
   auto_create_venv_path = function(parent_dir)
     return vim.fs.joinpath(parent_dir, ".venv")
