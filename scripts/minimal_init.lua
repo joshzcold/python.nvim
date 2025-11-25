@@ -15,6 +15,7 @@ local runtime_path = vim.fn.join(runtime_dependencies, ",")
 vim.cmd("set rtp+=" .. runtime_path)
 
 -- Set up 'mini.test'
+require("luasnip").setup()
 require("luasnip.extras.fmt")
 require("luasnip.nodes.absolute_indexer")
 require("nvim-treesitter.locals")
