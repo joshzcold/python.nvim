@@ -60,9 +60,29 @@ PythonLSP.python_lsp_servers = {
     end,
   },
   ty = {
-    callback = function(_, client)
-      vim.notify_once(string.format("python.nvim: restart lsp client: '%s'", client.name), vim.log.levels.INFO)
-      vim.cmd(":LspRestart ty")
+    callback = function(venv_path, client)
+      local new_settings = vim.tbl_deep_extend("force", client.settings, {
+        pythonExtension = {
+          activeEnvironment = {
+            version = {
+              major = 3,
+              minor = 12,
+              patch = 0,
+              sysVersion = "3.12",
+            },
+            environment = {
+              folderUri = "file://" .. vim.fs.joinpath(venv_path, "/bin/python"),
+              uri = vim.fs.basename(venv_path),
+              type = "VirtualEnvironment",
+            },
+            executable = {
+              uri = "file://" .. vim.fs.joinpath(venv_path, "/bin/python"),
+              sysPrefix = venv_path,
+            },
+          },
+        },
+      })
+      call_did_change_configuration(client, new_settings)
     end,
   },
   -- For my homies in devops
