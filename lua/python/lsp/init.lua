@@ -61,7 +61,10 @@ PythonLSP.python_lsp_servers = {
   },
   ty = {
     callback = function(venv_path, client)
-      local new_settings = vim.tbl_deep_extend("force", client.settings, {
+      if venv_path == nil then
+        return
+      end
+      PythonLSP.restart_and_update_settings(client, {
         pythonExtension = {
           activeEnvironment = {
             version = {
@@ -82,7 +85,6 @@ PythonLSP.python_lsp_servers = {
           },
         },
       })
-      call_did_change_configuration(client, new_settings)
     end,
   },
   -- For my homies in devops
@@ -114,6 +116,21 @@ function PythonLSP.notify_workspace_did_change()
     PythonLSP.python_lsp_servers[client.name].callback(venv_python, client)
     ::continue::
   end
+end
+
+---Stop, merge settings and restart an lsp client
+---@param client vim.lsp.Client
+---@param settings table
+function PythonLSP.restart_and_update_settings(client, settings)
+  local new_settings = vim.tbl_deep_extend("force", client.settings, { settings = settings })
+  local lsp_name = client.name
+  vim.notify(("Restarting and updating settings of: %s"):format(lsp_name), vim.log.levels.WARN)
+  client:stop(true)
+  vim.lsp.config(lsp_name, new_settings)
+  local timer = assert(vim.uv.new_timer())
+  timer:start(500, 0, function()
+    vim.lsp.enable(lsp_name)
+  end)
 end
 
 return PythonLSP
