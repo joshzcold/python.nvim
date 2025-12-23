@@ -1,4 +1,3 @@
-local tsutil = require("nvim-treesitter.ts_utils")
 local nodes = require("python.treesitter.nodes")
 
 local PythonTreeSitter = {
@@ -8,7 +7,7 @@ local PythonTreeSitter = {
 }
 
 function PythonTreeSitter.test_ts_queries()
-  local current_node = tsutil.get_node_at_cursor()
+  local current_node = vim.treesitter.get_node()
   if not current_node then
     return
   end
