@@ -184,9 +184,18 @@ local function tbl_deep_extend_existing(target, source, prev_key)
         -- Overwrite existing key
         target[key] = value
       end
+    elseif type(key) == "number" then
+      -- If the key is a number then we can assume 
+      -- that this is a table that is supposed to be a list
+      goto continue
     else
-      error(("python.nvim: user inputted config key: %s is not found in config table: %s"):format(key, prev_key))
+      vim.notify(
+        ("python.nvim: user inputted config key: %s is not found in config table: %s"):format(key, prev_key),
+        vim.log.levels.WARN
+      )
+      goto continue
     end
+    ::continue::
   end
   return target
 end

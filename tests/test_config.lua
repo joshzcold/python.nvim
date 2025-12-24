@@ -34,9 +34,11 @@ T["setup"]["override"] = function()
 end
 
 T["setup"]["not_found"] = function()
-  expect.error(function()
-    child.lua("config.setup({ ui = { popup = {foobar = true}} })")
-  end, ".*user inputted config key: foobar is not found.*")
+  child.lua("config.setup({ ui = { popup = {foobar = true}} })")
+  eq(
+    child.lua([[return vim.split(vim.fn.execute("messages", "silent"), "\n")]]),
+    { "", "python.nvim: user inputted config key: foobar is not found in config table: config.ui.popup" }
+  )
 end
 
 -- Return test set which will be collected and execute inside `MiniTest.run()`
