@@ -185,7 +185,7 @@ local function tbl_deep_extend_existing(target, source, prev_key)
         target[key] = value
       end
     elseif type(key) == "number" then
-      -- If the key is a number then we can assume 
+      -- If the key is a number then we can assume
       -- that this is a table that is supposed to be a list
       goto continue
     else
