@@ -38,6 +38,7 @@ PythonVENVInterpreters.hatch_interpreters()	python.txt	/*PythonVENVInterpreters.
 PythonVENVInterpreters.python_interpreters()	python.txt	/*PythonVENVInterpreters.python_interpreters()*
 PythonVENVInterpreters.uv_interpreters()	python.txt	/*PythonVENVInterpreters.uv_interpreters()*
 UI	python.txt	/*UI*
+checkForFStringCallParent()	python.txt	/*checkForFStringCallParent()*
 create_dap_config()	python.txt	/*create_dap_config()*
 findNodeOfParentsWithType()	python.txt	/*findNodeOfParentsWithType()*
 getNodeAtCursor()	python.txt	/*getNodeAtCursor()*

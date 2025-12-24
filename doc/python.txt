@@ -67,7 +67,7 @@ Default values:
     -- Path for venvs picker
     venvs_path = vim.fn.expand("~/.virtualenvs"),
     -- Something to do after setting an environment
-    post_set_venv = nil,
+    post_set_venv = false,
     -- base path for creating new venvs
     auto_create_venv_path = function(parent_dir)
       return vim.fs.joinpath(parent_dir, ".venv")
@@ -77,7 +77,7 @@ Default values:
     -- like .yaml, .yml for ansible
     auto_venv_lsp_attach_patterns = { "*.py" },
 
-    -- Filetypes to activate commands for python.nvim
+    -- Buffer patterns to activate commands for python.nvim
     command_setup_buf_pattern = { "*.py" },
 
     -- Load python.nvim python snippets
@@ -117,56 +117,6 @@ Default values:
             "expression_statement",
             "integer",
           },
-        },
-      },
-    },
-    -- Load python keymaps. Everything starting with <leader>p...
-    keymaps = {
-      -- following nvim_set_keymap() mode, lhs, rhs, opts
-      mappings = {
-        ["<leader>pv"] = { "n", "<cmd>Python venv pick<cr>", { desc = "python.nvim: pick venv" } },
-        ["<leader>pi"] = { "n", "<cmd>Python venv install<cr>", { desc = "python.nvim: python venv install" } },
-        ["<leader>pd"] = { "n", "<cmd>Python dap<cr>", { desc = "python.nvim: python run debug program" } },
-
-        -- Test Actions
-        ["<leader>ptt"] = { "n", "<cmd>Python test<cr>", { desc = "python.nvim: python run test suite" } },
-        ["<leader>ptm"] = { "n", "<cmd>Python test_method<cr>", { desc = "python.nvim: python run test method" } },
-        ["<leader>ptf"] = { "n", "<cmd>Python test_file<cr>", { desc = "python.nvim: python run test file" } },
-        ["<leader>ptdd"] = { "n", "<cmd>Python test_debug<cr>", { desc = "python.nvim: run test suite in debug mode." } },
-        ["<leader>ptdm"] = {
-          "n",
-          "<cmd>Python test_method_debug<cr>",
-          { desc = "python.nvim: run test method in debug mode." },
-        },
-        ["<leader>ptdf"] = {
-          "n",
-          "<cmd>Python test_file_debug<cr>",
-          { desc = "python.nvim: run test file in debug mode." },
-        },
-
-        -- VEnv Actions
-        ["<leader>ped"] = {
-          "n",
-          "<cmd>Python venv delete_select<cr>",
-          { desc = "python.nvim: select and delete a known venv." },
-        },
-        ["<leader>peD"] = { "n", "<cmd>Python venv delete<cr>", { desc = "python.nvim: delete current venv set." } },
-
-        -- Language Actions
-        ["<leader>ppe"] = {
-          "n",
-          "<cmd>Python treesitter toggle_enumerate<cr>",
-          { desc = "python.nvim: turn list into enumerate" },
-        },
-        ["<leader>ppw"] = {
-          "n",
-          "<cmd>Python treesitter wrap_cursor<cr>",
-          { desc = "python.nvim: wrap treesitter identifier with pattern" },
-        },
-        ["<leader>pw"] = {
-          "v",
-          ":Python treesitter wrap_cursor<cr>",
-          { desc = "python.nvim: wrap treesitter identifier with pattern" },
         },
       },
     },
@@ -378,6 +328,16 @@ Parameters ~
 Parameters ~
 {subtitute_option} `(nil|string)` if string then use as substitute
 	otherwise select from config
+
+------------------------------------------------------------------------------
+                                                   *checkForFStringCallParent()*
+                      `checkForFStringCallParent`({node})
+
+Parameters ~
+{node} `(TSNode)` the current ts node we are checking for parents
+Return ~
+`(string)` callText check if this node has a "call" type node 3 parents up
+this is used for checking on "".format() calls for strings.
 
 
 ==============================================================================

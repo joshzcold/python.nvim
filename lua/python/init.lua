@@ -51,15 +51,12 @@ function Python.setup(opts)
       local venv = require("python.venv")
       local commands = require("python.commands")
       local snip = require("python.snip")
-      local keymap = require("python.keymap")
       local uv = require("python.uv.commands")
 
       commands.load_commands()
       uv.load_commands()
 
       snip.load_snippets()
-
-      keymap.load_keymaps()
 
       venv.load_existing_venv()
     end,
